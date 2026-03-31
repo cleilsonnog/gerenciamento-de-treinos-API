@@ -4,7 +4,8 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "dev": "tsx --watch src/index.ts"
+    "dev": "tsx --watch src/index.ts",
+    "build": "tsc"
   },
   "engines": {
     "node": "24.x"
