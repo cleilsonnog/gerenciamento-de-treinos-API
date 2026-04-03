@@ -103,10 +103,13 @@ export class GetStats {
       return total + end.diff(start, "second");
     }, 0);
 
+    const today = dayjs.tz(new Date(), tz);
+    const streakStart = toDate.isBefore(today) ? toDate : today;
+
     const workoutStreak = await this.calculateStreak(
       workoutPlan.id,
       workoutPlan.workoutDays,
-      toDate,
+      streakStart,
       tz,
     );
 
