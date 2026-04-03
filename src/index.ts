@@ -5,6 +5,7 @@ import fastifyCors from "@fastify/cors";
 import fastifySwagger from "@fastify/swagger";
 import fastifyApiReference from "@scalar/fastify-api-reference";
 import Fastify from "fastify";
+import rawBody from "fastify-raw-body";
 import {
   jsonSchemaTransform,
   serializerCompiler,
@@ -18,6 +19,7 @@ import { aiRoutes } from "./routes/ai.js";
 import { homeRoutes } from "./routes/home.js";
 import { meRoutes } from "./routes/me.js";
 import { statsRoutes } from "./routes/stats.js";
+import { stripeRoutes } from "./routes/stripe.js";
 import { workoutPlanRoutes } from "./routes/workout_plan.js";
 
 const envToLogger = {
@@ -40,6 +42,13 @@ const app = Fastify({
 
 app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
+
+await app.register(rawBody, {
+  field: "rawBody",
+  global: false,
+  runFirst: true,
+  encoding: false,
+});
 
 await app.register(fastifySwagger, {
   openapi: {
@@ -87,6 +96,7 @@ await app.register(homeRoutes, { prefix: "/home" });
 await app.register(statsRoutes, { prefix: "/stats" });
 await app.register(meRoutes, { prefix: "/me" });
 await app.register(aiRoutes, { prefix: "/ai" });
+await app.register(stripeRoutes);
 
 app.withTypeProvider<ZodTypeProvider>().route({
   method: "GET",

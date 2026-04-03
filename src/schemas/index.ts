@@ -1,6 +1,6 @@
 import z from "zod";
 
-import { WeekDay } from "../generated/prisma/enums.js";
+import { Plan, SubscriptionStatus, WeekDay } from "../generated/prisma/enums.js";
 
 const weekDayValues = Object.values(WeekDay) as [WeekDay, ...WeekDay[]];
 
@@ -221,4 +221,43 @@ export const GetStatsResponseSchema = z.object({
   completedWorkoutsCount: z.number(),
   conclusionRate: z.number(),
   totalTimeInSeconds: z.number(),
+});
+
+// Stripe schemas
+
+const planValues = Object.values(Plan) as [Plan, ...Plan[]];
+const subscriptionStatusValues = Object.values(SubscriptionStatus) as [
+  SubscriptionStatus,
+  ...SubscriptionStatus[],
+];
+
+export const CreateCheckoutSessionBodySchema = z.object({
+  plan: z.enum(["MONTHLY", "QUARTERLY"]),
+});
+
+export const CreateCheckoutSessionResponseSchema = z.object({
+  checkoutUrl: z.url(),
+});
+
+export const GetSubscriptionResponseSchema = z.object({
+  plan: z.enum(planValues),
+  subscriptionStatus: z.enum(subscriptionStatusValues).nullable(),
+  stripeCustomerId: z.string().nullable(),
+  subscriptionId: z.string().nullable(),
+  trialEndsAt: z.iso.datetime(),
+  isTrialActive: z.boolean(),
+  hasAccess: z.boolean(),
+});
+
+export const CancelSubscriptionResponseSchema = z.object({
+  message: z.string(),
+});
+
+export const ChangePlanBodySchema = z.object({
+  plan: z.enum(["MONTHLY", "QUARTERLY"]),
+});
+
+export const ChangePlanResponseSchema = z.object({
+  message: z.string(),
+  plan: z.enum(planValues),
 });

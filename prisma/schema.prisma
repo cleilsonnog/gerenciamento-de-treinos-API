@@ -27,7 +27,11 @@ model User {
   weightInGrams       Int?
   heightInCentimeters Int?
   age                 Int?
-  bodyFatPercentage   Int? // 100 representa 100% 
+  bodyFatPercentage   Int? // 100 representa 100%
+  plan                Plan               @default(FREE)
+  stripeCustomerId    String?            @unique
+  subscriptionId      String?            @unique
+  subscriptionStatus  SubscriptionStatus?
 
   @@unique([email])
   @@map("user")
@@ -43,6 +47,19 @@ model WorkoutPlan {
   isActive       Boolean      @default(true)
   createdAt      DateTime     @default(now()) @db.Timestamptz()
   updatedAt      DateTime     @updatedAt @db.Timestamptz()
+}
+
+enum Plan {
+  FREE
+  MONTHLY
+  QUARTERLY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  INCOMPLETE
+  PAST_DUE
 }
 
 enum WeekDay {

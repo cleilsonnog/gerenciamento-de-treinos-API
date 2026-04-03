@@ -18,3 +18,17 @@ export class SessionAlreadyStartedError extends Error {
     this.name = "SessionAlreadyStartedError";
   }
 }
+
+export class SubscriptionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "SubscriptionError";
+  }
+}
+
+export class NoActiveSubscriptionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "NoActiveSubscriptionError";
+  }
+}

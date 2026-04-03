@@ -47,6 +47,25 @@ pnpm eslint .               # Executa ESLint
 
 Swagger UI disponível em `/docs` quando o servidor está rodando (porta 4949).
 
+## Integração de Pagamentos (Stripe)
+
+- Stripe deve ser implementado apenas no backend
+- Nunca expor STRIPE_SECRET_KEY no frontend
+- Utilizar webhook como fonte da verdade para pagamentos
+- Nunca confiar apenas no redirect de sucesso
+- Sempre persistir no banco:
+  - stripe_customer_id
+  - subscription_id
+  - subscription_status
+  - plan
+
+- Eventos obrigatórios a tratar:
+  - checkout.session.completed
+  - invoice.paid
+  - customer.subscription.updated
+
+- Garantir idempotência no processamento de webhook
+
 ## MCPs
 
 - **SEMPRE** use Context7 para buscar documentações
