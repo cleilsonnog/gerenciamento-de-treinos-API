@@ -118,8 +118,7 @@ app.route({
   async handler(request, reply) {
     try {
       // Construct request URL
-      const proto = request.headers["x-forwarded-proto"] || "http";
-      const url = new URL(request.url, `${proto}://${request.headers.host}`);
+      const url = new URL(request.url, env.API_BASE_URL);
 
       // Convert Fastify headers to standard Headers object
       const headers = new Headers();
