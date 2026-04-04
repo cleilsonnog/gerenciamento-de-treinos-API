@@ -20,7 +20,7 @@ const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().startsWith("whsec_"),
   STRIPE_PRICE_MONTHLY_ID: z.string().startsWith("price_"),
   STRIPE_PRICE_QUARTERLY_ID: z.string().startsWith("price_"),
-  WEB_APP_BASE_URL: z.url(),
+  WEB_APP_BASE_URL: z.string().transform((val) => val.split(",").map((u) => u.trim())),
   NODE_ENV: z
     .enum(["development", "production", "test"])
     .default("development"),

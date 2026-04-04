@@ -44,8 +44,8 @@ export class CreateCheckoutSession {
       mode: "subscription",
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${env.WEB_APP_BASE_URL}/profile`,
-      cancel_url: `${env.WEB_APP_BASE_URL}/landing#planos`,
+      success_url: `${env.WEB_APP_BASE_URL[0]}/profile`,
+      cancel_url: `${env.WEB_APP_BASE_URL[0]}/landing#planos`,
       metadata: { userId: dto.userId, plan: dto.plan },
     });
 
