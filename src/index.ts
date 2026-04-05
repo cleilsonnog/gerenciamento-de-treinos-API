@@ -130,6 +130,19 @@ app.route({
       });
       // Process authentication request
       const response = await auth.handler(req);
+
+      if (response.headers.get("location")?.includes("error")) {
+        const body = response.body ? await response.clone().text() : null;
+        app.log.error({
+          msg: "Auth error",
+          location: response.headers.get("location"),
+          status: response.status,
+          body,
+          requestUrl: url.toString(),
+          cookies: request.headers.cookie,
+        });
+      }
+
       // Forward response to client
       reply.status(response.status);
       response.headers.forEach((value, key) => {
@@ -149,6 +162,17 @@ app.route({
       });
     }
   },
+});
+
+app.get("/debug/auth-config", async () => {
+  return {
+    apiBaseUrl: env.API_BASE_URL,
+    nodeEnv: env.NODE_ENV,
+    hasGoogleClientId: !!env.GOOGLE_CLIENT_ID,
+    hasGoogleClientSecret: !!env.GOOGLE_CLIENT_SECRET,
+    googleClientSecretPrefix: env.GOOGLE_CLIENT_SECRET?.substring(0, 8),
+    redirectUri: `${env.API_BASE_URL}/api/auth/callback/google`,
+  };
 });
 
 // Run the server!
