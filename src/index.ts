@@ -13,6 +13,7 @@ import {
   ZodTypeProvider,
 } from "fastify-type-provider-zod";
 
+import { fromNodeHeaders } from "better-auth/node";
 import { auth } from "./lib/auth.js";
 import { env } from "./lib/env.js";
 import { aiRoutes } from "./routes/ai.js";
@@ -121,15 +122,10 @@ app.route({
       // Construct request URL
       const url = new URL(request.url, env.API_BASE_URL);
 
-      // Convert Fastify headers to standard Headers object
-      const headers = new Headers();
-      Object.entries(request.headers).forEach(([key, value]) => {
-        if (value) headers.append(key, value.toString());
-      });
       // Create Fetch API-compatible request
       const req = new Request(url.toString(), {
         method: request.method,
-        headers,
+        headers: fromNodeHeaders(request.headers),
         ...(request.body ? { body: JSON.stringify(request.body) } : {}),
       });
       // Process authentication request

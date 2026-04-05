@@ -22,7 +22,7 @@ export const auth = betterAuth({
   advanced: {
     crossSubDomainCookies: {
       enabled: true,
-      domains: env.NODE_ENV === "production" ? ".nogueiradev.com" : undefined,
+      domain: env.NODE_ENV === "production" ? ".nogueiradev.com" : undefined,
     },
   },
 });
