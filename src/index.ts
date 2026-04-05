@@ -38,6 +38,7 @@ const envToLogger = {
 
 const app = Fastify({
   logger: envToLogger[env.NODE_ENV],
+  trustProxy: true,
 });
 
 app.setValidatorCompiler(validatorCompiler);
