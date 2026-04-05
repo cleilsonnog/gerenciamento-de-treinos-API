@@ -13,6 +13,7 @@ export const auth = betterAuth({
       prompt: "select_account",
       clientId: env.GOOGLE_CLIENT_ID as string,
       clientSecret: env.GOOGLE_CLIENT_SECRET as string,
+      redirectURI: `${env.API_BASE_URL}/api/auth/callback/google`,
     },
   },
   database: prismaAdapter(prisma, {
