@@ -4,7 +4,7 @@ import { NotFoundError } from "../erros/index.js";
 import { Plan, SubscriptionStatus } from "../generated/prisma/enums.js";
 import { prisma } from "../lib/db.js";
 
-const TRIAL_DAYS = 5;
+const TRIAL_DAYS = 14;
 
 interface InputDto {
   userId: string;

@@ -67,7 +67,7 @@ export class HandleStripeWebhook {
     await prisma.user.update({
       where: { id: userId },
       data: {
-        plan: plan === "MONTHLY" ? Plan.MONTHLY : Plan.QUARTERLY,
+        plan: plan === "MONTHLY" ? Plan.MONTHLY : plan === "YEARLY" ? Plan.YEARLY : Plan.QUARTERLY,
         stripeCustomerId: customerId ?? undefined,
         subscriptionId: subscriptionId ?? undefined,
         subscriptionStatus: subscription

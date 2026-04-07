@@ -217,7 +217,7 @@ export const UpsertUserTrainDataBodySchema = z.object({
   weightInGrams: z.number().int().positive(),
   heightInCentimeters: z.number().int().positive(),
   age: z.number().int().positive(),
-  bodyFatPercentage: z.number().int().min(0).max(100),
+  bodyFatPercentage: z.number().int().min(0).max(100).nullable().optional(),
 });
 
 export const UpsertUserTrainDataResponseSchema = z.object({
@@ -225,7 +225,7 @@ export const UpsertUserTrainDataResponseSchema = z.object({
   weightInGrams: z.number(),
   heightInCentimeters: z.number(),
   age: z.number(),
-  bodyFatPercentage: z.number().int().min(0).max(100),
+  bodyFatPercentage: z.number().nullable(),
 });
 
 export const GetUserTrainDataResponseSchema = z
@@ -235,7 +235,7 @@ export const GetUserTrainDataResponseSchema = z
     weightInGrams: z.number(),
     heightInCentimeters: z.number(),
     age: z.number(),
-    bodyFatPercentage: z.number(),
+    bodyFatPercentage: z.number().nullable(),
   })
   .nullable();
 
@@ -268,7 +268,7 @@ const subscriptionStatusValues = Object.values(SubscriptionStatus) as [
 ];
 
 export const CreateCheckoutSessionBodySchema = z.object({
-  plan: z.enum(["MONTHLY", "QUARTERLY"]),
+  plan: z.enum(["MONTHLY", "YEARLY"]),
 });
 
 export const CreateCheckoutSessionResponseSchema = z.object({
@@ -290,7 +290,7 @@ export const CancelSubscriptionResponseSchema = z.object({
 });
 
 export const ChangePlanBodySchema = z.object({
-  plan: z.enum(["MONTHLY", "QUARTERLY"]),
+  plan: z.enum(["MONTHLY", "YEARLY"]),
 });
 
 export const ChangePlanResponseSchema = z.object({

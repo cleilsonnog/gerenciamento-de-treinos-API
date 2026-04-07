@@ -10,7 +10,7 @@ interface OutputDto {
   weightInGrams: number;
   heightInCentimeters: number;
   age: number;
-  bodyFatPercentage: number;
+  bodyFatPercentage: number | null;
 }
 
 export class GetUserTrainData {
@@ -23,8 +23,7 @@ export class GetUserTrainData {
       !user ||
       user.weightInGrams === null ||
       user.heightInCentimeters === null ||
-      user.age === null ||
-      user.bodyFatPercentage === null
+      user.age === null
     ) {
       return null;
     }

@@ -53,6 +53,7 @@ enum Plan {
   FREE
   MONTHLY
   QUARTERLY
+  YEARLY
 }
 
 enum SubscriptionStatus {

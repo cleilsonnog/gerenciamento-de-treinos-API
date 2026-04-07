@@ -5,7 +5,7 @@ interface InputDto {
   weightInGrams: number;
   heightInCentimeters: number;
   age: number;
-  bodyFatPercentage: number;
+  bodyFatPercentage?: number | null;
 }
 
 interface OutputDto {
@@ -13,7 +13,7 @@ interface OutputDto {
   weightInGrams: number;
   heightInCentimeters: number;
   age: number;
-  bodyFatPercentage: number;
+  bodyFatPercentage: number | null;
 }
 
 export class UpsertUserTrainData {
@@ -24,7 +24,7 @@ export class UpsertUserTrainData {
         weightInGrams: dto.weightInGrams,
         heightInCentimeters: dto.heightInCentimeters,
         age: dto.age,
-        bodyFatPercentage: dto.bodyFatPercentage,
+        bodyFatPercentage: dto.bodyFatPercentage ?? null,
       },
     });
 
@@ -33,7 +33,7 @@ export class UpsertUserTrainData {
       weightInGrams: user.weightInGrams!,
       heightInCentimeters: user.heightInCentimeters!,
       age: user.age!,
-      bodyFatPercentage: user.bodyFatPercentage!,
+      bodyFatPercentage: user.bodyFatPercentage,
     };
   }
 }

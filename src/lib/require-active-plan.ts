@@ -6,7 +6,7 @@ import { Plan } from "../generated/prisma/enums.js";
 import { auth } from "./auth.js";
 import { prisma } from "./db.js";
 
-const TRIAL_DAYS = 5;
+const TRIAL_DAYS = 14;
 
 export const requireActivePlan = async (
   request: FastifyRequest,

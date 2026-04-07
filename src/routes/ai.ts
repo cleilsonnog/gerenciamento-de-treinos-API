@@ -130,7 +130,9 @@ export const aiRoutes = async (app: FastifyInstance) => {
                 .int()
                 .min(0)
                 .max(100)
-                .describe("Percentual de gordura corporal (0 a 100)"),
+                .nullable()
+                .optional()
+                .describe("Percentual de gordura corporal (0 a 100). Opcional, pois o usuário pode não saber."),
             }),
             execute: async (params) => {
               const upsertUserTrainData = new UpsertUserTrainData();

@@ -5,7 +5,7 @@ import { stripe } from "../lib/stripe.js";
 interface InputDto {
   userId: string;
   userEmail: string;
-  plan: "MONTHLY" | "QUARTERLY";
+  plan: "MONTHLY" | "YEARLY";
 }
 
 interface OutputDto {
@@ -14,8 +14,10 @@ interface OutputDto {
 
 const PRICE_IDS: Record<string, string> = {
   MONTHLY: env.STRIPE_PRICE_MONTHLY_ID,
-  QUARTERLY: env.STRIPE_PRICE_QUARTERLY_ID,
+  YEARLY: env.STRIPE_PRICE_YEARLY_ID,
 };
+
+const MONTHLY_COUPON_ID = "TREINOIA5";
 
 export class CreateCheckoutSession {
   execute = async (dto: InputDto): Promise<OutputDto> => {
@@ -44,6 +46,12 @@ export class CreateCheckoutSession {
       mode: "subscription",
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
+      ...(dto.plan === "MONTHLY" && {
+        discounts: [{ coupon: MONTHLY_COUPON_ID }],
+      }),
+      subscription_data: {
+        trial_period_days: 14,
+      },
       success_url: `${env.WEB_APP_BASE_URL[0]}/profile`,
       cancel_url: `${env.WEB_APP_BASE_URL[0]}/landing#planos`,
       metadata: { userId: dto.userId, plan: dto.plan },
