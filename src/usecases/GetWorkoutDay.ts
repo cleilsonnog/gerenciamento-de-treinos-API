@@ -1,6 +1,13 @@
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc.js";
+import timezone from "dayjs/plugin/timezone.js";
+
 import { NotFoundError } from "../erros/index.js";
 import { WeekDay } from "../generated/prisma/enums.js";
 import { prisma } from "../lib/db.js";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 interface InputDto {
   workoutPlanId: string;
@@ -52,11 +59,21 @@ export class GetWorkoutDay {
       throw new NotFoundError("Workout plan not found");
     }
 
+    const now = dayjs();
+    const weekStart = now.day(0).startOf("day");
+    const weekEnd = now.day(6).endOf("day");
+
     const workoutDay = await prisma.workoutDay.findUnique({
       where: { id: dto.workoutDayId, workoutPlanId: dto.workoutPlanId },
       include: {
         exercises: true,
         sessions: {
+          where: {
+            startedAt: {
+              gte: weekStart.toDate(),
+              lte: weekEnd.toDate(),
+            },
+          },
           include: {
             sessionExercises: true,
           },

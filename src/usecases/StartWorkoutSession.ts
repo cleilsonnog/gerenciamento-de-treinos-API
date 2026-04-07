@@ -1,3 +1,5 @@
+import dayjs from "dayjs";
+
 import {
   NotFoundError,
   SessionAlreadyStartedError,
@@ -32,14 +34,25 @@ export class StartWorkoutSession {
       throw new WorkoutPlanNotActiveError("Workout plan is not active");
     }
 
+    const now = dayjs();
+    const weekStart = now.day(0).startOf("day");
+    const weekEnd = now.day(6).endOf("day");
+
     const workoutDay = await prisma.workoutDay.findFirst({
       where: {
         id: dto.workoutDayId,
         workoutPlanId: dto.workoutPlanId,
       },
       include: {
-        sessions: true,
         exercises: true,
+        sessions: {
+          where: {
+            startedAt: {
+              gte: weekStart.toDate(),
+              lte: weekEnd.toDate(),
+            },
+          },
+        },
       },
     });
 
