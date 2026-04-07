@@ -149,6 +149,12 @@ export const GetWorkoutDayParamsSchema = z.object({
   workoutDayId: z.string().uuid(),
 });
 
+export const SessionExerciseSchema = z.object({
+  id: z.uuid(),
+  exerciseId: z.uuid(),
+  isCompleted: z.boolean(),
+});
+
 export const GetWorkoutDayResponseSchema = z.object({
   id: z.uuid(),
   name: z.string(),
@@ -165,6 +171,7 @@ export const GetWorkoutDayResponseSchema = z.object({
       sets: z.number(),
       reps: z.number(),
       restTimeInSeconds: z.number(),
+      weightInKg: z.number().nullable(),
     }),
   ),
   sessions: z.array(
@@ -173,8 +180,37 @@ export const GetWorkoutDayResponseSchema = z.object({
       workoutDayId: z.uuid(),
       startedAt: z.iso.datetime().nullish(),
       completedAt: z.iso.datetime().nullish(),
+      sessionExercises: z.array(SessionExerciseSchema),
     }),
   ),
+});
+
+export const UpdateSessionExerciseParamsSchema = z.object({
+  workoutPlanId: z.string().uuid(),
+  sessionId: z.string().uuid(),
+  sessionExerciseId: z.string().uuid(),
+});
+
+export const UpdateSessionExerciseBodySchema = z.object({
+  isCompleted: z.boolean(),
+});
+
+export const UpdateSessionExerciseResponseSchema = SessionExerciseSchema;
+
+export const UpdateExerciseWeightParamsSchema = z.object({
+  workoutPlanId: z.string().uuid(),
+  workoutDayId: z.string().uuid(),
+  exerciseId: z.string().uuid(),
+});
+
+export const UpdateExerciseWeightBodySchema = z.object({
+  weightInKg: z.number().min(0).nullable(),
+});
+
+export const UpdateExerciseWeightResponseSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  weightInKg: z.number().nullable(),
 });
 
 export const UpsertUserTrainDataBodySchema = z.object({

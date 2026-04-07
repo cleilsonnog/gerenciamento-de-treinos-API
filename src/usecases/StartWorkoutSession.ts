@@ -39,6 +39,7 @@ export class StartWorkoutSession {
       },
       include: {
         sessions: true,
+        exercises: true,
       },
     });
 
@@ -56,6 +57,11 @@ export class StartWorkoutSession {
       data: {
         workoutDayId: dto.workoutDayId,
         startedAt: new Date(),
+        sessionExercises: {
+          create: workoutDay.exercises.map((exercise) => ({
+            exerciseId: exercise.id,
+          })),
+        },
       },
     });
 

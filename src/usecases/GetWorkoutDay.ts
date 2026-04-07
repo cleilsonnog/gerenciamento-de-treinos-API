@@ -23,12 +23,18 @@ interface OutputDto {
     sets: number;
     reps: number;
     restTimeInSeconds: number;
+    weightInKg: number | null;
   }>;
   sessions: Array<{
     id: string;
     workoutDayId: string;
     startedAt?: string | null;
     completedAt?: string | null;
+    sessionExercises: Array<{
+      id: string;
+      exerciseId: string;
+      isCompleted: boolean;
+    }>;
   }>;
 }
 
@@ -50,7 +56,11 @@ export class GetWorkoutDay {
       where: { id: dto.workoutDayId, workoutPlanId: dto.workoutPlanId },
       include: {
         exercises: true,
-        sessions: true,
+        sessions: {
+          include: {
+            sessionExercises: true,
+          },
+        },
       },
     });
 
@@ -73,12 +83,18 @@ export class GetWorkoutDay {
         sets: exercise.sets,
         reps: exercise.reps,
         restTimeInSeconds: exercise.restTimeInSeconds,
+        weightInKg: exercise.weightInKg,
       })),
       sessions: workoutDay.sessions.map((session) => ({
         id: session.id,
         workoutDayId: session.workoutDayId,
         startedAt: session.startedAt?.toISOString() ?? null,
         completedAt: session.completedAt?.toISOString() ?? null,
+        sessionExercises: session.sessionExercises.map((se) => ({
+          id: se.id,
+          exerciseId: se.exerciseId,
+          isCompleted: se.isCompleted,
+        })),
       })),
     };
   }

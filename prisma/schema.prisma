@@ -88,26 +88,40 @@ model WorkoutDay {
 }
 
 model WorkoutExercise {
-  id                String     @id @default(uuid())
-  name              String
-  order             Int
-  workoutDayId      String
-  workoutDay        WorkoutDay @relation(fields: [workoutDayId], references: [id], onDelete: Cascade)
-  sets              Int
-  reps              Int
-  restTimeInSeconds Int
-  createdAt         DateTime   @default(now()) @db.Timestamptz()
-  updatedAt         DateTime   @updatedAt @db.Timestamptz()
+  id                 String             @id @default(uuid())
+  name               String
+  order              Int
+  workoutDayId       String
+  workoutDay         WorkoutDay         @relation(fields: [workoutDayId], references: [id], onDelete: Cascade)
+  sets               Int
+  reps               Int
+  restTimeInSeconds  Int
+  weightInKg         Float?
+  sessionExercises   SessionExercise[]
+  createdAt          DateTime           @default(now()) @db.Timestamptz()
+  updatedAt          DateTime           @updatedAt @db.Timestamptz()
 }
 
 model WorkoutSession {
-  id           String     @id @default(uuid())
-  workoutDayId String
-  workoutDay   WorkoutDay @relation(fields: [workoutDayId], references: [id], onDelete: Cascade)
-  startedAt    DateTime   @db.Timestamptz()
-  completedAt  DateTime?  @db.Timestamptz()
-  createdAt    DateTime   @default(now()) @db.Timestamptz()
-  updatedAt    DateTime   @updatedAt @db.Timestamptz()
+  id                String            @id @default(uuid())
+  workoutDayId      String
+  workoutDay        WorkoutDay        @relation(fields: [workoutDayId], references: [id], onDelete: Cascade)
+  startedAt         DateTime          @db.Timestamptz()
+  completedAt       DateTime?         @db.Timestamptz()
+  sessionExercises  SessionExercise[]
+  createdAt         DateTime          @default(now()) @db.Timestamptz()
+  updatedAt         DateTime          @updatedAt @db.Timestamptz()
+}
+
+model SessionExercise {
+  id          String          @id @default(uuid())
+  sessionId   String
+  session     WorkoutSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  exerciseId  String
+  exercise    WorkoutExercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  isCompleted Boolean         @default(false)
+  createdAt   DateTime        @default(now()) @db.Timestamptz()
+  updatedAt   DateTime        @updatedAt @db.Timestamptz()
 }
 
 model Session {
