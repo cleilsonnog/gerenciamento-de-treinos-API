@@ -14,6 +14,7 @@ import z from "zod";
 
 import { WeekDay } from "../generated/prisma/enums.js";
 import { auth } from "../lib/auth.js";
+import { AddExerciseToWorkoutDay } from "../usecases/AddExerciseToWorkoutDay.js";
 import { CreateWorkoutPlan } from "../usecases/CreatWorkoutPlan.js";
 import { GetUserTrainData } from "../usecases/GetUserTrainData.js";
 import { ListWorkoutPlans } from "../usecases/ListWorkoutPlans.js";
@@ -47,6 +48,15 @@ Quando o usuário quiser criar um plano de treino:
 - O plano DEVE ter exatamente 7 dias (MONDAY a SUNDAY).
 - Dias sem treino devem ter: \`isRest: true\`, \`exercises: []\`, \`estimatedDurationInSeconds: 0\`.
 - Chame a tool \`createWorkoutPlan\` para salvar o plano.
+
+## Adicionar Exercícios a um Plano Existente
+
+Quando o usuário quiser adicionar exercícios a um plano de treino já existente (ex: "adicione agachamento livre no treino de pernas"):
+1. **SEMPRE** chame a tool \`getWorkoutPlans\` primeiro para listar os planos do usuário.
+2. Identifique o plano e o dia de treino correto com base no que o usuário pediu.
+3. Use a tool \`addExerciseToWorkoutDay\` para adicionar o(s) exercício(s) ao dia correto.
+4. **NÃO** crie um novo plano de treino. Apenas adicione exercícios ao plano existente.
+5. Confirme ao usuário quais exercícios foram adicionados e em qual dia.
 
 ### Divisões de Treino (Splits)
 
@@ -146,6 +156,39 @@ export const aiRoutes = async (app: FastifyInstance) => {
             execute: async () => {
               const listWorkoutPlans = new ListWorkoutPlans();
               return listWorkoutPlans.execute({ userId });
+            },
+          }),
+          addExerciseToWorkoutDay: tool({
+            description:
+              "Adiciona um ou mais exercícios a um dia de treino existente do plano ativo do usuário. Use quando o usuário quiser incluir exercícios sem criar um novo plano.",
+            inputSchema: z.object({
+              workoutDayId: z
+                .string()
+                .describe(
+                  "ID do dia de treino onde os exercícios serão adicionados. Obtido via getWorkoutPlans.",
+                ),
+              exercises: z
+                .array(
+                  z.object({
+                    name: z.string().describe("Nome do exercício"),
+                    sets: z.number().describe("Número de séries"),
+                    reps: z.number().describe("Número de repetições"),
+                    restTimeInSeconds: z
+                      .number()
+                      .describe(
+                        "Tempo de descanso entre séries em segundos",
+                      ),
+                  }),
+                )
+                .describe("Lista de exercícios a adicionar"),
+            }),
+            execute: async (input) => {
+              const addExercise = new AddExerciseToWorkoutDay();
+              return addExercise.execute({
+                userId,
+                workoutDayId: input.workoutDayId,
+                exercises: input.exercises,
+              });
             },
           }),
           createWorkoutPlan: tool({
