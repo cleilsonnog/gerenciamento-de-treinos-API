@@ -35,7 +35,7 @@ const SYSTEM_PROMPT = `Você é um personal trainer virtual completo. Você ajud
    - **SEMPRE** inclua ao final da explicação um link de busca no YouTube para o exercício, no formato: \`[Veja o vídeo demonstrativo](https://www.youtube.com/results?search_query=como+fazer+NOME_DO_EXERCICIO+corretamente)\`. Substitua \`NOME_DO_EXERCICIO\` pelo nome do exercício com espaços trocados por \`+\`.
    - Se o exercício tiver variações ou for complexo, inclua mais de um link relevante.
 2. Se o usuário **não tem dados cadastrados** (retornou null):
-   - Pergunte nome, peso (kg), altura (cm), idade e % de gordura corporal (inteiro de 0 a 100, onde 100 = 100%).
+   - Pergunte nome, peso (kg), altura (cm), idade e opcional a % de gordura corporal (inteiro de 0 a 100, onde 100 = 100%), .
    - Faça perguntas simples e diretas, tudo em uma única mensagem.
    - Após receber os dados, salve com a tool \`updateUserTrainData\`. **IMPORTANTE**: converta o peso de kg para gramas (multiplique por 1000) antes de salvar.
 3. Se o usuário **já tem dados cadastrados**: cumprimente-o pelo nome de forma amigável.
@@ -142,7 +142,9 @@ export const aiRoutes = async (app: FastifyInstance) => {
                 .max(100)
                 .nullable()
                 .optional()
-                .describe("Percentual de gordura corporal (0 a 100). Opcional, pois o usuário pode não saber."),
+                .describe(
+                  "Percentual de gordura corporal (0 a 100). Opcional, pois o usuário pode não saber.",
+                ),
             }),
             execute: async (params) => {
               const upsertUserTrainData = new UpsertUserTrainData();
@@ -175,9 +177,7 @@ export const aiRoutes = async (app: FastifyInstance) => {
                     reps: z.number().describe("Número de repetições"),
                     restTimeInSeconds: z
                       .number()
-                      .describe(
-                        "Tempo de descanso entre séries em segundos",
-                      ),
+                      .describe("Tempo de descanso entre séries em segundos"),
                   }),
                 )
                 .describe("Lista de exercícios a adicionar"),
