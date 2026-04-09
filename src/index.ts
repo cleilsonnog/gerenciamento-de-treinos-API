@@ -4,6 +4,7 @@ import "dotenv/config";
 import fastifyCors from "@fastify/cors";
 import fastifySwagger from "@fastify/swagger";
 import fastifyApiReference from "@scalar/fastify-api-reference";
+import { fromNodeHeaders } from "better-auth/node";
 import Fastify from "fastify";
 import rawBody from "fastify-raw-body";
 import {
@@ -13,9 +14,9 @@ import {
   ZodTypeProvider,
 } from "fastify-type-provider-zod";
 
-import { fromNodeHeaders } from "better-auth/node";
 import { auth } from "./lib/auth.js";
 import { env } from "./lib/env.js";
+import { adminRoutes } from "./routes/admin.js";
 import { aiRoutes } from "./routes/ai.js";
 import { homeRoutes } from "./routes/home.js";
 import { meRoutes } from "./routes/me.js";
@@ -93,6 +94,7 @@ await app.register(fastifyApiReference, {
 });
 // Declare a route
 
+await app.register(adminRoutes, { prefix: "/admin" });
 await app.register(workoutPlanRoutes);
 await app.register(homeRoutes, { prefix: "/home" });
 await app.register(statsRoutes, { prefix: "/stats" });

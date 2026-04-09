@@ -1,0 +1,258 @@
+import { FastifyInstance } from "fastify";
+import { ZodTypeProvider } from "fastify-type-provider-zod";
+
+import { NotFoundError } from "../erros/index.js";
+import { auth } from "../lib/auth.js";
+import { requireAdmin } from "../lib/require-admin.js";
+import {
+  AdminUserDetailParamsSchema,
+  AdminUserDetailResponseSchema,
+  BanUserBodySchema,
+  BanUserResponseSchema,
+  ErrorSchema,
+  GetAdminStatsResponseSchema,
+  GetAdminStripeLogsQuerySchema,
+  GetAdminStripeLogsResponseSchema,
+  ListAdminUsersQuerySchema,
+  ListAdminUsersResponseSchema,
+  UnbanUserResponseSchema,
+} from "../schemas/index.js";
+import { GetAdminStats } from "../usecases/GetAdminStats.js";
+import { GetAdminStripeLogs } from "../usecases/GetAdminStripeLogs.js";
+import { GetAdminUserDetail } from "../usecases/GetAdminUserDetail.js";
+import { ListAdminUsers } from "../usecases/ListAdminUsers.js";
+
+export const adminRoutes = async (app: FastifyInstance) => {
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: "GET",
+    url: "/stats",
+    schema: {
+      operationId: "getAdminStats",
+      tags: ["Admin"],
+      summary: "Get admin dashboard statistics",
+      response: {
+        200: GetAdminStatsResponseSchema,
+        401: ErrorSchema,
+        403: ErrorSchema,
+        500: ErrorSchema,
+      },
+    },
+    handler: async (request, reply) => {
+      try {
+        const admin = await requireAdmin(request, reply);
+        if (!admin) return;
+
+        const getAdminStats = new GetAdminStats();
+        const result = await getAdminStats.execute();
+        return reply.status(200).send(result);
+      } catch (error) {
+        app.log.error(error);
+        return reply.status(500).send({
+          error: "Internal server error",
+          code: "INTERNAL_SERVER_ERROR",
+        });
+      }
+    },
+  });
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: "GET",
+    url: "/users",
+    schema: {
+      operationId: "listAdminUsers",
+      tags: ["Admin"],
+      summary: "List users with pagination and filters",
+      querystring: ListAdminUsersQuerySchema,
+      response: {
+        200: ListAdminUsersResponseSchema,
+        401: ErrorSchema,
+        403: ErrorSchema,
+        500: ErrorSchema,
+      },
+    },
+    handler: async (request, reply) => {
+      try {
+        const admin = await requireAdmin(request, reply);
+        if (!admin) return;
+
+        const listAdminUsers = new ListAdminUsers();
+        const result = await listAdminUsers.execute({
+          search: request.query.search,
+          plan: request.query.plan,
+          status: request.query.status,
+          page: request.query.page,
+          limit: request.query.limit,
+        });
+        return reply.status(200).send(result);
+      } catch (error) {
+        app.log.error(error);
+        return reply.status(500).send({
+          error: "Internal server error",
+          code: "INTERNAL_SERVER_ERROR",
+        });
+      }
+    },
+  });
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: "GET",
+    url: "/users/:userId",
+    schema: {
+      operationId: "getAdminUserDetail",
+      tags: ["Admin"],
+      summary: "Get detailed user information",
+      params: AdminUserDetailParamsSchema,
+      response: {
+        200: AdminUserDetailResponseSchema,
+        401: ErrorSchema,
+        403: ErrorSchema,
+        404: ErrorSchema,
+        500: ErrorSchema,
+      },
+    },
+    handler: async (request, reply) => {
+      try {
+        const admin = await requireAdmin(request, reply);
+        if (!admin) return;
+
+        const getAdminUserDetail = new GetAdminUserDetail();
+        const result = await getAdminUserDetail.execute({
+          userId: request.params.userId,
+        });
+        return reply.status(200).send(result);
+      } catch (error) {
+        if (error instanceof NotFoundError) {
+          return reply.status(404).send({
+            error: error.message,
+            code: "NOT_FOUND",
+          });
+        }
+        app.log.error(error);
+        return reply.status(500).send({
+          error: "Internal server error",
+          code: "INTERNAL_SERVER_ERROR",
+        });
+      }
+    },
+  });
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: "POST",
+    url: "/users/:userId/ban",
+    schema: {
+      operationId: "banAdminUser",
+      tags: ["Admin"],
+      summary: "Ban a user",
+      params: AdminUserDetailParamsSchema,
+      body: BanUserBodySchema,
+      response: {
+        200: BanUserResponseSchema,
+        401: ErrorSchema,
+        403: ErrorSchema,
+        500: ErrorSchema,
+      },
+    },
+    handler: async (request, reply) => {
+      try {
+        const adminResult = await requireAdmin(request, reply);
+        if (!adminResult) return;
+
+        await auth.api.banUser({
+          body: {
+            userId: request.params.userId,
+            banReason: request.body.banReason,
+            banExpiresIn: request.body.banExpiresIn,
+          },
+        });
+
+        return reply.status(200).send({
+          message: "Usuário banido com sucesso",
+        });
+      } catch (error) {
+        app.log.error(error);
+        return reply.status(500).send({
+          error: "Internal server error",
+          code: "INTERNAL_SERVER_ERROR",
+        });
+      }
+    },
+  });
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: "POST",
+    url: "/users/:userId/unban",
+    schema: {
+      operationId: "unbanAdminUser",
+      tags: ["Admin"],
+      summary: "Unban a user",
+      params: AdminUserDetailParamsSchema,
+      response: {
+        200: UnbanUserResponseSchema,
+        401: ErrorSchema,
+        403: ErrorSchema,
+        500: ErrorSchema,
+      },
+    },
+    handler: async (request, reply) => {
+      try {
+        const adminResult = await requireAdmin(request, reply);
+        if (!adminResult) return;
+
+        await auth.api.unbanUser({
+          body: {
+            userId: request.params.userId,
+          },
+        });
+
+        return reply.status(200).send({
+          message: "Usuário desbanido com sucesso",
+        });
+      } catch (error) {
+        app.log.error(error);
+        return reply.status(500).send({
+          error: "Internal server error",
+          code: "INTERNAL_SERVER_ERROR",
+        });
+      }
+    },
+  });
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: "GET",
+    url: "/stripe-logs",
+    schema: {
+      operationId: "getAdminStripeLogs",
+      tags: ["Admin"],
+      summary: "Get Stripe event logs",
+      querystring: GetAdminStripeLogsQuerySchema,
+      response: {
+        200: GetAdminStripeLogsResponseSchema,
+        401: ErrorSchema,
+        403: ErrorSchema,
+        500: ErrorSchema,
+      },
+    },
+    handler: async (request, reply) => {
+      try {
+        const admin = await requireAdmin(request, reply);
+        if (!admin) return;
+
+        const getAdminStripeLogs = new GetAdminStripeLogs();
+        const result = await getAdminStripeLogs.execute({
+          type: request.query.type,
+          startDate: request.query.startDate,
+          endDate: request.query.endDate,
+          limit: request.query.limit,
+          startingAfter: request.query.startingAfter,
+        });
+        return reply.status(200).send(result);
+      } catch (error) {
+        app.log.error(error);
+        return reply.status(500).send({
+          error: "Internal server error",
+          code: "INTERNAL_SERVER_ERROR",
+        });
+      }
+    },
+  });
+};

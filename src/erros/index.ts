@@ -32,3 +32,10 @@ export class NoActiveSubscriptionError extends Error {
     this.name = "NoActiveSubscriptionError";
   }
 }
+
+export class ForbiddenError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ForbiddenError";
+  }
+}

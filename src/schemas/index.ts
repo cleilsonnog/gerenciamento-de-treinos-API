@@ -297,3 +297,98 @@ export const ChangePlanResponseSchema = z.object({
   message: z.string(),
   plan: z.enum(planValues),
 });
+
+// Admin schemas
+
+export const GetAdminStatsResponseSchema = z.object({
+  totalUsers: z.number(),
+  usersByPlan: z.record(z.string(), z.number()),
+  activeSubscriptions: z.number(),
+  newUsersThisMonth: z.number(),
+});
+
+export const AdminUserSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string(),
+  image: z.string().nullable(),
+  plan: z.enum(planValues),
+  subscriptionStatus: z.enum(subscriptionStatusValues).nullable(),
+  role: z.string(),
+  banned: z.boolean(),
+  createdAt: z.iso.datetime(),
+});
+
+export const ListAdminUsersQuerySchema = z.object({
+  search: z.string().optional(),
+  plan: z.string().optional(),
+  status: z.string().optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});
+
+export const ListAdminUsersResponseSchema = z.object({
+  users: z.array(AdminUserSchema),
+  total: z.number(),
+  page: z.number(),
+  limit: z.number(),
+  totalPages: z.number(),
+});
+
+export const AdminUserDetailParamsSchema = z.object({
+  userId: z.string(),
+});
+
+export const AdminUserDetailResponseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string(),
+  image: z.string().nullable(),
+  plan: z.enum(planValues),
+  subscriptionStatus: z.enum(subscriptionStatusValues).nullable(),
+  stripeCustomerId: z.string().nullable(),
+  role: z.string(),
+  banned: z.boolean(),
+  banReason: z.string().nullable(),
+  banExpires: z.iso.datetime().nullable(),
+  createdAt: z.iso.datetime(),
+  weightInGrams: z.number().nullable(),
+  heightInCentimeters: z.number().nullable(),
+  age: z.number().nullable(),
+  bodyFatPercentage: z.number().nullable(),
+  workoutPlansCount: z.number(),
+  sessionsCount: z.number(),
+});
+
+export const BanUserBodySchema = z.object({
+  banReason: z.string().optional(),
+  banExpiresIn: z.number().optional(),
+});
+
+export const BanUserResponseSchema = z.object({
+  message: z.string(),
+});
+
+export const UnbanUserResponseSchema = z.object({
+  message: z.string(),
+});
+
+export const GetAdminStripeLogsQuerySchema = z.object({
+  type: z.string().optional(),
+  startDate: z.iso.date().optional(),
+  endDate: z.iso.date().optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  startingAfter: z.string().optional(),
+});
+
+export const StripeEventSchema = z.object({
+  id: z.string(),
+  type: z.string(),
+  created: z.number(),
+  data: z.record(z.string(), z.unknown()),
+});
+
+export const GetAdminStripeLogsResponseSchema = z.object({
+  events: z.array(StripeEventSchema),
+  hasMore: z.boolean(),
+});
