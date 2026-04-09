@@ -3,6 +3,7 @@ import { ZodTypeProvider } from "fastify-type-provider-zod";
 
 import { NotFoundError } from "../erros/index.js";
 import { auth } from "../lib/auth.js";
+import { prisma } from "../lib/db.js";
 import { requireAdmin } from "../lib/require-admin.js";
 import {
   AdminUserDetailParamsSchema,
@@ -165,6 +166,18 @@ export const adminRoutes = async (app: FastifyInstance) => {
           },
         });
 
+        await prisma.adminLog.create({
+          data: {
+            adminId: adminResult.userId,
+            action: "BAN_USER",
+            targetUserId: request.params.userId,
+            metadata: {
+              banReason: request.body.banReason ?? null,
+              banExpiresIn: request.body.banExpiresIn ?? null,
+            },
+          },
+        });
+
         return reply.status(200).send({
           message: "Usuário banido com sucesso",
         });
@@ -201,6 +214,14 @@ export const adminRoutes = async (app: FastifyInstance) => {
         await auth.api.unbanUser({
           body: {
             userId: request.params.userId,
+          },
+        });
+
+        await prisma.adminLog.create({
+          data: {
+            adminId: adminResult.userId,
+            action: "UNBAN_USER",
+            targetUserId: request.params.userId,
           },
         });
 

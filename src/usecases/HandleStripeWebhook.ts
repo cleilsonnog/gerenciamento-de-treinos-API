@@ -19,6 +19,22 @@ const mapSubscriptionStatus = (
   status: string,
 ): SubscriptionStatus | undefined => STRIPE_STATUS_MAP[status];
 
+const getSubscriptionPeriodEnd = (
+  subscription: Stripe.Subscription,
+): Date | undefined => {
+  const firstItem = subscription.items.data[0];
+  if (!firstItem) return undefined;
+  return new Date(firstItem.current_period_end * 1000);
+};
+
+const getSubscriptionIdFromInvoice = (
+  invoice: Stripe.Invoice,
+): string | undefined => {
+  const sub = invoice.parent?.subscription_details?.subscription;
+  if (!sub) return undefined;
+  return typeof sub === "string" ? sub : sub.id;
+};
+
 export class HandleStripeWebhook {
   execute = async (dto: InputDto): Promise<void> => {
     const { event } = dto;
@@ -32,8 +48,18 @@ export class HandleStripeWebhook {
       case "invoice.paid":
         await this.handleInvoicePaid(event.data.object as Stripe.Invoice);
         break;
+      case "invoice.payment_failed":
+        await this.handleInvoicePaymentFailed(
+          event.data.object as Stripe.Invoice,
+        );
+        break;
       case "customer.subscription.updated":
         await this.handleSubscriptionUpdated(
+          event.data.object as Stripe.Subscription,
+        );
+        break;
+      case "customer.subscription.deleted":
+        await this.handleSubscriptionDeleted(
           event.data.object as Stripe.Subscription,
         );
         break;
@@ -74,6 +100,9 @@ export class HandleStripeWebhook {
           ? (mapSubscriptionStatus(subscription.status) ??
             SubscriptionStatus.ACTIVE)
           : SubscriptionStatus.ACTIVE,
+        currentPeriodEnd: subscription
+          ? getSubscriptionPeriodEnd(subscription)
+          : undefined,
       },
     });
   };
@@ -98,10 +127,47 @@ export class HandleStripeWebhook {
       return;
     }
 
+    const subscriptionId = getSubscriptionIdFromInvoice(invoice);
+
+    const subscription = subscriptionId
+      ? await stripe.subscriptions.retrieve(subscriptionId)
+      : null;
+
     await prisma.user.update({
       where: { id: user.id },
       data: {
         subscriptionStatus: SubscriptionStatus.ACTIVE,
+        currentPeriodEnd: subscription
+          ? getSubscriptionPeriodEnd(subscription)
+          : undefined,
+      },
+    });
+  };
+
+  private handleInvoicePaymentFailed = async (
+    invoice: Stripe.Invoice,
+  ): Promise<void> => {
+    const customerId =
+      typeof invoice.customer === "string"
+        ? invoice.customer
+        : invoice.customer?.id;
+
+    if (!customerId) {
+      return;
+    }
+
+    const user = await prisma.user.findFirst({
+      where: { stripeCustomerId: customerId },
+    });
+
+    if (!user) {
+      return;
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        subscriptionStatus: SubscriptionStatus.PAST_DUE,
       },
     });
   };
@@ -132,9 +198,41 @@ export class HandleStripeWebhook {
       where: { id: user.id },
       data: {
         subscriptionStatus: status ?? user.subscriptionStatus,
+        currentPeriodEnd: getSubscriptionPeriodEnd(subscription),
         ...(subscription.status === "canceled" && {
           plan: Plan.FREE,
         }),
+      },
+    });
+  };
+
+  private handleSubscriptionDeleted = async (
+    subscription: Stripe.Subscription,
+  ): Promise<void> => {
+    const customerId =
+      typeof subscription.customer === "string"
+        ? subscription.customer
+        : subscription.customer?.id;
+
+    if (!customerId) {
+      return;
+    }
+
+    const user = await prisma.user.findFirst({
+      where: { stripeCustomerId: customerId },
+    });
+
+    if (!user) {
+      return;
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        plan: Plan.FREE,
+        subscriptionStatus: SubscriptionStatus.CANCELED,
+        subscriptionId: null,
+        currentPeriodEnd: null,
       },
     });
   };

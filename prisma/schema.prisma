@@ -35,7 +35,10 @@ model User {
   plan                Plan               @default(FREE)
   stripeCustomerId    String?            @unique
   subscriptionId      String?            @unique
-  subscriptionStatus  SubscriptionStatus?
+  subscriptionStatus    SubscriptionStatus?
+  currentPeriodEnd     DateTime?          @db.Timestamptz()
+  adminLogs           AdminLog[]         @relation("adminLogs")
+  adminTargetLogs     AdminLog[]         @relation("adminTargetLogs")
 
   @@unique([email])
   @@map("user")
@@ -127,6 +130,22 @@ model SessionExercise {
   isCompleted Boolean         @default(false)
   createdAt   DateTime        @default(now()) @db.Timestamptz()
   updatedAt   DateTime        @updatedAt @db.Timestamptz()
+}
+
+model AdminLog {
+  id           String   @id @default(uuid())
+  adminId      String
+  admin        User     @relation("adminLogs", fields: [adminId], references: [id], onDelete: Cascade)
+  action       String
+  targetUserId String?
+  targetUser   User?    @relation("adminTargetLogs", fields: [targetUserId], references: [id], onDelete: SetNull)
+  metadata     Json?
+  createdAt    DateTime @default(now()) @db.Timestamptz()
+
+  @@index([adminId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("admin_log")
 }
 
 model Session {

@@ -280,6 +280,7 @@ export const GetSubscriptionResponseSchema = z.object({
   subscriptionStatus: z.enum(subscriptionStatusValues).nullable(),
   stripeCustomerId: z.string().nullable(),
   subscriptionId: z.string().nullable(),
+  currentPeriodEnd: z.iso.datetime().nullable(),
   trialEndsAt: z.iso.datetime(),
   isTrialActive: z.boolean(),
   hasAccess: z.boolean(),

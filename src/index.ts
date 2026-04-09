@@ -15,6 +15,7 @@ import {
 } from "fastify-type-provider-zod";
 
 import { auth } from "./lib/auth.js";
+import { checkBan } from "./lib/check-ban.js";
 import { env } from "./lib/env.js";
 import { adminRoutes } from "./routes/admin.js";
 import { aiRoutes } from "./routes/ai.js";
@@ -92,7 +93,7 @@ await app.register(fastifyApiReference, {
     ],
   },
 });
-// Declare a route
+app.addHook("onRequest", checkBan);
 
 await app.register(adminRoutes, { prefix: "/admin" });
 await app.register(workoutPlanRoutes);

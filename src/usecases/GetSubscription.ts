@@ -15,6 +15,7 @@ interface OutputDto {
   subscriptionStatus: SubscriptionStatus | null;
   stripeCustomerId: string | null;
   subscriptionId: string | null;
+  currentPeriodEnd: string | null;
   trialEndsAt: string;
   isTrialActive: boolean;
   hasAccess: boolean;
@@ -29,6 +30,7 @@ export class GetSubscription {
         subscriptionStatus: true,
         stripeCustomerId: true,
         subscriptionId: true,
+        currentPeriodEnd: true,
         createdAt: true,
       },
     });
@@ -49,6 +51,7 @@ export class GetSubscription {
       subscriptionStatus: user.subscriptionStatus,
       stripeCustomerId: user.stripeCustomerId,
       subscriptionId: user.subscriptionId,
+      currentPeriodEnd: user.currentPeriodEnd?.toISOString() ?? null,
       trialEndsAt: trialEndsAt.toISOString(),
       isTrialActive,
       hasAccess,
