@@ -1,3 +1,4 @@
+import { fromNodeHeaders } from "better-auth/node";
 import { FastifyInstance } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 
@@ -173,6 +174,7 @@ export const adminRoutes = async (app: FastifyInstance) => {
         if (!adminResult) return;
 
         await auth.api.banUser({
+          headers: fromNodeHeaders(request.headers),
           body: {
             userId: request.params.userId,
             banReason: request.body.banReason,
@@ -226,6 +228,7 @@ export const adminRoutes = async (app: FastifyInstance) => {
         if (!adminResult) return;
 
         await auth.api.unbanUser({
+          headers: fromNodeHeaders(request.headers),
           body: {
             userId: request.params.userId,
           },
