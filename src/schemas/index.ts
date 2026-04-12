@@ -393,3 +393,80 @@ export const GetAdminStripeLogsResponseSchema = z.object({
   events: z.array(StripeEventSchema),
   hasMore: z.boolean(),
 });
+
+// Admin Workout Plans schemas
+
+export const AdminUserWorkoutPlansParamsSchema = z.object({
+  userId: z.string(),
+});
+
+export const AdminWorkoutExerciseSchema = z.object({
+  id: z.uuid(),
+  order: z.number(),
+  name: z.string(),
+  sets: z.number(),
+  reps: z.number(),
+  restTimeInSeconds: z.number(),
+  weightInKg: z.number().nullable(),
+});
+
+export const AdminWorkoutDaySchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  weekDay: z.enum(weekDayValues),
+  isRest: z.boolean(),
+  estimatedDurationInSeconds: z.number(),
+  exercises: z.array(AdminWorkoutExerciseSchema),
+});
+
+export const AdminWorkoutPlanSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  isActive: z.boolean(),
+  createdAt: z.iso.datetime(),
+  workoutDays: z.array(AdminWorkoutDaySchema),
+});
+
+export const GetAdminUserWorkoutPlansResponseSchema = z.array(
+  AdminWorkoutPlanSchema,
+);
+
+export const UpdateAdminWorkoutExerciseParamsSchema = z.object({
+  userId: z.string(),
+  exerciseId: z.string().uuid(),
+});
+
+export const UpdateAdminWorkoutExerciseBodySchema = z.object({
+  name: z.string().trim().min(1).optional(),
+  sets: z.number().int().min(1).optional(),
+  reps: z.number().int().min(1).optional(),
+  restTimeInSeconds: z.number().int().min(1).optional(),
+  weightInKg: z.number().min(0).nullable().optional(),
+});
+
+export const UpdateAdminWorkoutExerciseResponseSchema =
+  AdminWorkoutExerciseSchema;
+
+export const AddAdminExerciseParamsSchema = z.object({
+  userId: z.string(),
+  workoutDayId: z.string().uuid(),
+});
+
+export const AddAdminExerciseBodySchema = z.object({
+  name: z.string().trim().min(1),
+  sets: z.number().int().min(1),
+  reps: z.number().int().min(1),
+  restTimeInSeconds: z.number().int().min(1),
+  weightInKg: z.number().min(0).nullable().optional(),
+});
+
+export const AddAdminExerciseResponseSchema = AdminWorkoutExerciseSchema;
+
+export const DeleteAdminExerciseParamsSchema = z.object({
+  userId: z.string(),
+  exerciseId: z.string().uuid(),
+});
+
+export const DeleteAdminExerciseResponseSchema = z.object({
+  message: z.string(),
+});

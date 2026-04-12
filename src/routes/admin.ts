@@ -6,22 +6,36 @@ import { auth } from "../lib/auth.js";
 import { prisma } from "../lib/db.js";
 import { requireAdmin } from "../lib/require-admin.js";
 import {
+  AddAdminExerciseBodySchema,
+  AddAdminExerciseParamsSchema,
+  AddAdminExerciseResponseSchema,
   AdminUserDetailParamsSchema,
   AdminUserDetailResponseSchema,
+  AdminUserWorkoutPlansParamsSchema,
   BanUserBodySchema,
   BanUserResponseSchema,
+  DeleteAdminExerciseParamsSchema,
+  DeleteAdminExerciseResponseSchema,
   ErrorSchema,
   GetAdminStatsResponseSchema,
   GetAdminStripeLogsQuerySchema,
   GetAdminStripeLogsResponseSchema,
+  GetAdminUserWorkoutPlansResponseSchema,
   ListAdminUsersQuerySchema,
   ListAdminUsersResponseSchema,
   UnbanUserResponseSchema,
+  UpdateAdminWorkoutExerciseBodySchema,
+  UpdateAdminWorkoutExerciseParamsSchema,
+  UpdateAdminWorkoutExerciseResponseSchema,
 } from "../schemas/index.js";
+import { AddAdminExerciseToWorkoutDay } from "../usecases/AddAdminExerciseToWorkoutDay.js";
+import { DeleteAdminWorkoutExercise } from "../usecases/DeleteAdminWorkoutExercise.js";
 import { GetAdminStats } from "../usecases/GetAdminStats.js";
 import { GetAdminStripeLogs } from "../usecases/GetAdminStripeLogs.js";
 import { GetAdminUserDetail } from "../usecases/GetAdminUserDetail.js";
+import { GetAdminUserWorkoutPlans } from "../usecases/GetAdminUserWorkoutPlans.js";
 import { ListAdminUsers } from "../usecases/ListAdminUsers.js";
+import { UpdateAdminWorkoutExercise } from "../usecases/UpdateAdminWorkoutExercise.js";
 
 export const adminRoutes = async (app: FastifyInstance) => {
   app.withTypeProvider<ZodTypeProvider>().route({
@@ -229,6 +243,221 @@ export const adminRoutes = async (app: FastifyInstance) => {
           message: "Usuário desbanido com sucesso",
         });
       } catch (error) {
+        app.log.error(error);
+        return reply.status(500).send({
+          error: "Internal server error",
+          code: "INTERNAL_SERVER_ERROR",
+        });
+      }
+    },
+  });
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: "GET",
+    url: "/users/:userId/workout-plans",
+    schema: {
+      operationId: "getAdminUserWorkoutPlans",
+      tags: ["Admin"],
+      summary: "List workout plans for a specific user",
+      params: AdminUserWorkoutPlansParamsSchema,
+      response: {
+        200: GetAdminUserWorkoutPlansResponseSchema,
+        401: ErrorSchema,
+        403: ErrorSchema,
+        404: ErrorSchema,
+        500: ErrorSchema,
+      },
+    },
+    handler: async (request, reply) => {
+      try {
+        const admin = await requireAdmin(request, reply);
+        if (!admin) return;
+
+        const usecase = new GetAdminUserWorkoutPlans();
+        const result = await usecase.execute({
+          userId: request.params.userId,
+        });
+        return reply.status(200).send(result);
+      } catch (error) {
+        if (error instanceof NotFoundError) {
+          return reply.status(404).send({
+            error: error.message,
+            code: "NOT_FOUND",
+          });
+        }
+        app.log.error(error);
+        return reply.status(500).send({
+          error: "Internal server error",
+          code: "INTERNAL_SERVER_ERROR",
+        });
+      }
+    },
+  });
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: "PATCH",
+    url: "/users/:userId/exercises/:exerciseId",
+    schema: {
+      operationId: "updateAdminWorkoutExercise",
+      tags: ["Admin"],
+      summary: "Update a workout exercise for a specific user",
+      params: UpdateAdminWorkoutExerciseParamsSchema,
+      body: UpdateAdminWorkoutExerciseBodySchema,
+      response: {
+        200: UpdateAdminWorkoutExerciseResponseSchema,
+        401: ErrorSchema,
+        403: ErrorSchema,
+        404: ErrorSchema,
+        500: ErrorSchema,
+      },
+    },
+    handler: async (request, reply) => {
+      try {
+        const admin = await requireAdmin(request, reply);
+        if (!admin) return;
+
+        const usecase = new UpdateAdminWorkoutExercise();
+        const result = await usecase.execute({
+          userId: request.params.userId,
+          exerciseId: request.params.exerciseId,
+          ...request.body,
+        });
+
+        await prisma.adminLog.create({
+          data: {
+            adminId: admin.userId,
+            action: "UPDATE_WORKOUT_EXERCISE",
+            targetUserId: request.params.userId,
+            metadata: {
+              exerciseId: request.params.exerciseId,
+              changes: request.body,
+            },
+          },
+        });
+
+        return reply.status(200).send(result);
+      } catch (error) {
+        if (error instanceof NotFoundError) {
+          return reply.status(404).send({
+            error: error.message,
+            code: "NOT_FOUND",
+          });
+        }
+        app.log.error(error);
+        return reply.status(500).send({
+          error: "Internal server error",
+          code: "INTERNAL_SERVER_ERROR",
+        });
+      }
+    },
+  });
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: "POST",
+    url: "/users/:userId/days/:workoutDayId/exercises",
+    schema: {
+      operationId: "addAdminExercise",
+      tags: ["Admin"],
+      summary: "Add an exercise to a workout day for a specific user",
+      params: AddAdminExerciseParamsSchema,
+      body: AddAdminExerciseBodySchema,
+      response: {
+        201: AddAdminExerciseResponseSchema,
+        401: ErrorSchema,
+        403: ErrorSchema,
+        404: ErrorSchema,
+        500: ErrorSchema,
+      },
+    },
+    handler: async (request, reply) => {
+      try {
+        const admin = await requireAdmin(request, reply);
+        if (!admin) return;
+
+        const usecase = new AddAdminExerciseToWorkoutDay();
+        const result = await usecase.execute({
+          userId: request.params.userId,
+          workoutDayId: request.params.workoutDayId,
+          exercise: request.body,
+        });
+
+        await prisma.adminLog.create({
+          data: {
+            adminId: admin.userId,
+            action: "ADD_EXERCISE",
+            targetUserId: request.params.userId,
+            metadata: {
+              workoutDayId: request.params.workoutDayId,
+              exercise: request.body,
+            },
+          },
+        });
+
+        return reply.status(201).send(result);
+      } catch (error) {
+        if (error instanceof NotFoundError) {
+          return reply.status(404).send({
+            error: error.message,
+            code: "NOT_FOUND",
+          });
+        }
+        app.log.error(error);
+        return reply.status(500).send({
+          error: "Internal server error",
+          code: "INTERNAL_SERVER_ERROR",
+        });
+      }
+    },
+  });
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: "DELETE",
+    url: "/users/:userId/exercises/:exerciseId",
+    schema: {
+      operationId: "deleteAdminExercise",
+      tags: ["Admin"],
+      summary: "Delete a workout exercise for a specific user",
+      params: DeleteAdminExerciseParamsSchema,
+      response: {
+        200: DeleteAdminExerciseResponseSchema,
+        401: ErrorSchema,
+        403: ErrorSchema,
+        404: ErrorSchema,
+        500: ErrorSchema,
+      },
+    },
+    handler: async (request, reply) => {
+      try {
+        const admin = await requireAdmin(request, reply);
+        if (!admin) return;
+
+        const usecase = new DeleteAdminWorkoutExercise();
+        await usecase.execute({
+          userId: request.params.userId,
+          exerciseId: request.params.exerciseId,
+        });
+
+        await prisma.adminLog.create({
+          data: {
+            adminId: admin.userId,
+            action: "DELETE_EXERCISE",
+            targetUserId: request.params.userId,
+            metadata: {
+              exerciseId: request.params.exerciseId,
+            },
+          },
+        });
+
+        return reply.status(200).send({
+          message: "Exercício excluído com sucesso",
+        });
+      } catch (error) {
+        if (error instanceof NotFoundError) {
+          return reply.status(404).send({
+            error: error.message,
+            code: "NOT_FOUND",
+          });
+        }
         app.log.error(error);
         return reply.status(500).send({
           error: "Internal server error",
