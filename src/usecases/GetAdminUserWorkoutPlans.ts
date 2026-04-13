@@ -25,6 +25,7 @@ interface OutputDto {
       reps: number;
       restTimeInSeconds: number;
       weightInKg: number | null;
+      gifUrl: string | null;
     }>;
   }>;
 }
@@ -70,6 +71,7 @@ export class GetAdminUserWorkoutPlans {
           reps: exercise.reps,
           restTimeInSeconds: exercise.restTimeInSeconds,
           weightInKg: exercise.weightInKg,
+          gifUrl: exercise.gifUrl,
         })),
       })),
     }));

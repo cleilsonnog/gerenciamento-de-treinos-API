@@ -6,6 +6,7 @@ interface ExerciseInput {
   sets: number;
   reps: number;
   restTimeInSeconds: number;
+  gifUrl?: string | null;
 }
 
 interface InputDto {
@@ -58,6 +59,7 @@ export class AddExerciseToWorkoutDay {
         sets: exercise.sets,
         reps: exercise.reps,
         restTimeInSeconds: exercise.restTimeInSeconds,
+        gifUrl: exercise.gifUrl ?? null,
         workoutDayId: dto.workoutDayId,
       })),
     });

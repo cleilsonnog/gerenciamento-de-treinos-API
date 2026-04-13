@@ -7,6 +7,7 @@ interface ExerciseInput {
   reps: number;
   restTimeInSeconds: number;
   weightInKg?: number | null;
+  gifUrl?: string | null;
 }
 
 interface InputDto {
@@ -23,6 +24,7 @@ interface OutputDto {
   reps: number;
   restTimeInSeconds: number;
   weightInKg: number | null;
+  gifUrl: string | null;
 }
 
 export class AddAdminExerciseToWorkoutDay {
@@ -58,6 +60,7 @@ export class AddAdminExerciseToWorkoutDay {
         reps: dto.exercise.reps,
         restTimeInSeconds: dto.exercise.restTimeInSeconds,
         weightInKg: dto.exercise.weightInKg ?? null,
+        gifUrl: dto.exercise.gifUrl ?? null,
         workoutDayId: dto.workoutDayId,
       },
     });
@@ -70,6 +73,7 @@ export class AddAdminExerciseToWorkoutDay {
       reps: created.reps,
       restTimeInSeconds: created.restTimeInSeconds,
       weightInKg: created.weightInKg,
+      gifUrl: created.gifUrl,
     };
   }
 }

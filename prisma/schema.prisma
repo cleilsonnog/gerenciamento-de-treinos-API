@@ -105,6 +105,7 @@ model WorkoutExercise {
   reps               Int
   restTimeInSeconds  Int
   weightInKg         Float?
+  gifUrl             String?
   sessionExercises   SessionExercise[]
   createdAt          DateTime           @default(now()) @db.Timestamptz()
   updatedAt          DateTime           @updatedAt @db.Timestamptz()

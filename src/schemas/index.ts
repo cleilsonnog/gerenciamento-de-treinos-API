@@ -172,6 +172,7 @@ export const GetWorkoutDayResponseSchema = z.object({
       reps: z.number(),
       restTimeInSeconds: z.number(),
       weightInKg: z.number().nullable(),
+      gifUrl: z.string().nullable(),
     }),
   ),
   sessions: z.array(
@@ -408,6 +409,7 @@ export const AdminWorkoutExerciseSchema = z.object({
   reps: z.number(),
   restTimeInSeconds: z.number(),
   weightInKg: z.number().nullable(),
+  gifUrl: z.string().nullable(),
 });
 
 export const AdminWorkoutDaySchema = z.object({
@@ -442,6 +444,7 @@ export const UpdateAdminWorkoutExerciseBodySchema = z.object({
   reps: z.number().int().min(1).optional(),
   restTimeInSeconds: z.number().int().min(1).optional(),
   weightInKg: z.number().min(0).nullable().optional(),
+  gifUrl: z.string().nullable().optional(),
 });
 
 export const UpdateAdminWorkoutExerciseResponseSchema =
@@ -458,9 +461,22 @@ export const AddAdminExerciseBodySchema = z.object({
   reps: z.number().int().min(1),
   restTimeInSeconds: z.number().int().min(1),
   weightInKg: z.number().min(0).nullable().optional(),
+  gifUrl: z.string().nullable().optional(),
 });
 
 export const AddAdminExerciseResponseSchema = AdminWorkoutExerciseSchema;
+
+export const SearchExerciseDbQuerySchema = z.object({
+  q: z.string().min(1),
+});
+
+export const SearchExerciseDbResponseSchema = z.array(
+  z.object({
+    exerciseId: z.string(),
+    name: z.string(),
+    gifUrl: z.string(),
+  }),
+);
 
 export const DeleteAdminExerciseParamsSchema = z.object({
   userId: z.string(),

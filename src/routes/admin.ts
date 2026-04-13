@@ -18,6 +18,8 @@ import {
   DeleteAdminExerciseParamsSchema,
   DeleteAdminExerciseResponseSchema,
   ErrorSchema,
+  SearchExerciseDbQuerySchema,
+  SearchExerciseDbResponseSchema,
   GetAdminStatsResponseSchema,
   GetAdminStripeLogsQuerySchema,
   GetAdminStripeLogsResponseSchema,
@@ -461,6 +463,57 @@ export const adminRoutes = async (app: FastifyInstance) => {
             code: "NOT_FOUND",
           });
         }
+        app.log.error(error);
+        return reply.status(500).send({
+          error: "Internal server error",
+          code: "INTERNAL_SERVER_ERROR",
+        });
+      }
+    },
+  });
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: "GET",
+    url: "/exercises/search",
+    schema: {
+      operationId: "searchExerciseDb",
+      tags: ["Admin"],
+      summary: "Search exercises from ExerciseDB",
+      querystring: SearchExerciseDbQuerySchema,
+      response: {
+        200: SearchExerciseDbResponseSchema,
+        401: ErrorSchema,
+        403: ErrorSchema,
+        500: ErrorSchema,
+      },
+    },
+    handler: async (request, reply) => {
+      try {
+        const admin = await requireAdmin(request, reply);
+        if (!admin) return;
+
+        const response = await fetch(
+          `https://oss.exercisedb.dev/api/v1/exercises/search?search=${encodeURIComponent(request.query.q)}`,
+        );
+
+        if (!response.ok) {
+          return reply.status(500).send({
+            error: "Failed to fetch from ExerciseDB",
+            code: "EXERCISEDB_ERROR",
+          });
+        }
+
+        const data = (await response.json()) as {
+          success: boolean;
+          data: Array<{
+            exerciseId: string;
+            name: string;
+            gifUrl: string;
+          }>;
+        };
+
+        return reply.status(200).send(data.data);
+      } catch (error) {
         app.log.error(error);
         return reply.status(500).send({
           error: "Internal server error",

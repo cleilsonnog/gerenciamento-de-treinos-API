@@ -74,6 +74,7 @@ await app.register(fastifySwagger, {
 await app.register(fastifyCors, {
   origin: env.WEB_APP_BASE_URL,
   credentials: true,
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
 });
 
 await app.register(fastifyApiReference, {

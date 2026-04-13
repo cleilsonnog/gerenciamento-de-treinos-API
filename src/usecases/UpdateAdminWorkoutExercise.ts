@@ -9,6 +9,7 @@ interface InputDto {
   reps?: number;
   restTimeInSeconds?: number;
   weightInKg?: number | null;
+  gifUrl?: string | null;
 }
 
 interface OutputDto {
@@ -19,6 +20,7 @@ interface OutputDto {
   reps: number;
   restTimeInSeconds: number;
   weightInKg: number | null;
+  gifUrl: string | null;
 }
 
 export class UpdateAdminWorkoutExercise {
@@ -48,6 +50,7 @@ export class UpdateAdminWorkoutExercise {
           restTimeInSeconds: dto.restTimeInSeconds,
         }),
         ...(dto.weightInKg !== undefined && { weightInKg: dto.weightInKg }),
+        ...(dto.gifUrl !== undefined && { gifUrl: dto.gifUrl }),
       },
     });
 
@@ -59,6 +62,7 @@ export class UpdateAdminWorkoutExercise {
       reps: updated.reps,
       restTimeInSeconds: updated.restTimeInSeconds,
       weightInKg: updated.weightInKg,
+      gifUrl: updated.gifUrl,
     };
   }
 }

@@ -18,6 +18,7 @@ import { AddExerciseToWorkoutDay } from "../usecases/AddExerciseToWorkoutDay.js"
 import { CreateWorkoutPlan } from "../usecases/CreatWorkoutPlan.js";
 import { GetUserTrainData } from "../usecases/GetUserTrainData.js";
 import { ListWorkoutPlans } from "../usecases/ListWorkoutPlans.js";
+import { SearchExerciseDb } from "../usecases/SearchExerciseDb.js";
 import { UpsertUserTrainData } from "../usecases/UpsertUserTrainData.js";
 
 const SYSTEM_PROMPT = `Você é um personal trainer virtual completo. Você ajuda a montar planos de treino personalizados e também tira dúvidas sobre execução de exercícios, técnica, postura e dicas de treino.
@@ -172,7 +173,8 @@ export const aiRoutes = async (app: FastifyInstance) => {
               exercises: z
                 .array(
                   z.object({
-                    name: z.string().describe("Nome do exercício"),
+                    name: z.string().describe("Nome do exercício em português"),
+                    nameEn: z.string().describe("Nome do exercício em inglês, incluindo o equipamento específico (ex: 'barbell stiff legged deadlift', 'dumbbell bicep curl', 'cable tricep pushdown'). Seja específico para encontrar o GIF correto na ExerciseDB."),
                     sets: z.number().describe("Número de séries"),
                     reps: z.number().describe("Número de repetições"),
                     restTimeInSeconds: z
@@ -183,11 +185,24 @@ export const aiRoutes = async (app: FastifyInstance) => {
                 .describe("Lista de exercícios a adicionar"),
             }),
             execute: async (input) => {
+              const searchExerciseDb = new SearchExerciseDb();
+              const exercisesWithGif = await Promise.all(
+                input.exercises.map(async (exercise) => {
+                  const results = await searchExerciseDb.execute(exercise.nameEn);
+                  return {
+                    name: exercise.name,
+                    sets: exercise.sets,
+                    reps: exercise.reps,
+                    restTimeInSeconds: exercise.restTimeInSeconds,
+                    gifUrl: results[0]?.gifUrl ?? null,
+                  };
+                }),
+              );
               const addExercise = new AddExerciseToWorkoutDay();
               return addExercise.execute({
                 userId,
                 workoutDayId: input.workoutDayId,
-                exercises: input.exercises,
+                exercises: exercisesWithGif,
               });
             },
           }),
@@ -225,7 +240,8 @@ export const aiRoutes = async (app: FastifyInstance) => {
                           order: z
                             .number()
                             .describe("Ordem do exercício no dia"),
-                          name: z.string().describe("Nome do exercício"),
+                          name: z.string().describe("Nome do exercício em português"),
+                          nameEn: z.string().describe("Nome do exercício em inglês, incluindo o equipamento específico (ex: 'barbell stiff legged deadlift', 'dumbbell bicep curl', 'cable tricep pushdown'). Seja específico para encontrar o GIF correto na ExerciseDB."),
                           sets: z.number().describe("Número de séries"),
                           reps: z.number().describe("Número de repetições"),
                           restTimeInSeconds: z
@@ -245,11 +261,30 @@ export const aiRoutes = async (app: FastifyInstance) => {
                 ),
             }),
             execute: async (input) => {
+              const searchExerciseDb = new SearchExerciseDb();
+              const workoutDaysWithGif = await Promise.all(
+                input.workoutDays.map(async (day) => ({
+                  ...day,
+                  exercises: await Promise.all(
+                    day.exercises.map(async (exercise) => {
+                      const results = await searchExerciseDb.execute(exercise.nameEn);
+                      return {
+                        order: exercise.order,
+                        name: exercise.name,
+                        sets: exercise.sets,
+                        reps: exercise.reps,
+                        restTimeInSeconds: exercise.restTimeInSeconds,
+                        gifUrl: results[0]?.gifUrl ?? null,
+                      };
+                    }),
+                  ),
+                })),
+              );
               const createWorkoutPlan = new CreateWorkoutPlan();
               return createWorkoutPlan.execute({
                 userId,
                 name: input.name,
-                workoutDays: input.workoutDays,
+                workoutDays: workoutDaysWithGif,
               });
             },
           }),
