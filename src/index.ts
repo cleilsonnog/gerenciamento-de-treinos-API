@@ -94,6 +94,16 @@ await app.register(fastifyApiReference, {
     ],
   },
 });
+app.addHook("onRequest", async (request, reply) => {
+  if (
+    request.url.startsWith("/?error=banned") ||
+    request.url.startsWith("/?error=banned&")
+  ) {
+    const frontendUrl = env.WEB_APP_BASE_URL[0];
+    return reply.redirect(`${frontendUrl}/banned`);
+  }
+});
+
 app.addHook("onRequest", checkBan);
 
 await app.register(adminRoutes, { prefix: "/admin" });
