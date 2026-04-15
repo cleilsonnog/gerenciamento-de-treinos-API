@@ -44,27 +44,28 @@ export const auth = betterAuth({
 
       const frontendUrl = env.WEB_APP_BASE_URL[0];
 
-      // Try multiple context properties to find the user
-      const context = ctx.context as Record<string, unknown>;
-      const userId =
-        (context.session as { user?: { id?: string } } | undefined)?.user
-          ?.id ??
-        (context.user as { id?: string } | undefined)?.id ??
-        (context.newUser as { id?: string } | undefined)?.id;
+      // Better-Auth updates the account's accessToken during OAuth callback
+      // even for banned users. Find the most recently updated Google account
+      // whose user is banned.
+      const recentAccount = await prisma.account.findFirst({
+        where: {
+          providerId: "google",
+          updatedAt: { gte: new Date(Date.now() - 30000) },
+          user: { banned: true },
+        },
+        orderBy: { updatedAt: "desc" },
+        select: {
+          user: { select: { banReason: true, banExpires: true } },
+        },
+      });
 
-      if (userId) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: userId },
-          select: { banReason: true, banExpires: true },
-        });
-
-        if (dbUser) {
-          const params = new URLSearchParams();
-          if (dbUser.banReason) params.set("reason", dbUser.banReason);
-          if (dbUser.banExpires)
-            params.set("expires", dbUser.banExpires.toISOString());
-          throw ctx.redirect(`${frontendUrl}/banned?${params.toString()}`);
-        }
+      if (recentAccount?.user) {
+        const params = new URLSearchParams();
+        if (recentAccount.user.banReason)
+          params.set("reason", recentAccount.user.banReason);
+        if (recentAccount.user.banExpires)
+          params.set("expires", recentAccount.user.banExpires.toISOString());
+        throw ctx.redirect(`${frontendUrl}/banned?${params.toString()}`);
       }
 
       throw ctx.redirect(`${frontendUrl}/banned`);
