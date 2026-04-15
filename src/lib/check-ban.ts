@@ -25,7 +25,7 @@ export const checkBan = async (
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { banned: true, banExpires: true },
+    select: { banned: true, banReason: true, banExpires: true },
   });
 
   if (!user?.banned) {
@@ -43,5 +43,7 @@ export const checkBan = async (
   reply.status(403).send({
     error: "Sua conta está suspensa.",
     code: "USER_BANNED",
+    banReason: user.banReason ?? null,
+    banExpires: user.banExpires?.toISOString() ?? null,
   });
 };

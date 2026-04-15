@@ -9,6 +9,13 @@ export const ErrorSchema = z.object({
   code: z.string(),
 });
 
+export const BannedErrorSchema = z.object({
+  error: z.string(),
+  code: z.literal("USER_BANNED"),
+  banReason: z.string().nullable(),
+  banExpires: z.iso.datetime().nullable(),
+});
+
 export const StartWorkoutSessionParamsSchema = z.object({
   workoutPlanId: z.string().uuid(),
   workoutDayId: z.string().uuid(),
