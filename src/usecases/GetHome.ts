@@ -165,6 +165,7 @@ export class GetHome {
 
     let streak = 0;
     let day = currentDate;
+    const todayKey = currentDate.format("YYYY-MM-DD");
 
     for (let i = 0; i < 365; i++) {
       const weekDay = WEEKDAY_MAP[day.day()];
@@ -181,6 +182,12 @@ export class GetHome {
       }
 
       const dateKey = day.format("YYYY-MM-DD");
+
+      if (dateKey === todayKey && !completedDates.has(dateKey)) {
+        day = day.subtract(1, "day");
+        continue;
+      }
+
       if (completedDates.has(dateKey)) {
         streak++;
         day = day.subtract(1, "day");

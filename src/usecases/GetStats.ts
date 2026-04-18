@@ -150,6 +150,7 @@ export class GetStats {
 
     let streak = 0;
     let day = currentDate;
+    const todayKey = dayjs.tz(new Date(), tz).format("YYYY-MM-DD");
 
     for (let i = 0; i < 365; i++) {
       const weekDay = WEEKDAY_MAP[day.day()];
@@ -160,11 +161,18 @@ export class GetStats {
       }
 
       if (restWeekDays.has(weekDay)) {
+        streak++;
         day = day.subtract(1, "day");
         continue;
       }
 
       const dateKey = day.format("YYYY-MM-DD");
+
+      if (dateKey === todayKey && !completedDates.has(dateKey)) {
+        day = day.subtract(1, "day");
+        continue;
+      }
+
       if (completedDates.has(dateKey)) {
         streak++;
         day = day.subtract(1, "day");
