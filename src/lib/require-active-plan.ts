@@ -8,19 +8,33 @@ import { prisma } from "./db.js";
 
 const TRIAL_DAYS = 14;
 
+const protectedRoutes = [
+  { method: "POST", prefix: "/workout-plans" },
+  { method: "PATCH", prefix: "/workout-plans" },
+  { method: "POST", prefix: "/ai" },
+  { method: "PUT", prefix: "/me" },
+];
+
 export const requireActivePlan = async (
   request: FastifyRequest,
   reply: FastifyReply,
 ): Promise<void> => {
+  const isProtected = protectedRoutes.some(
+    (route) =>
+      request.method === route.method &&
+      request.url.startsWith(route.prefix),
+  );
+
+  if (!isProtected) {
+    return;
+  }
+
   const session = await auth.api.getSession({
     headers: fromNodeHeaders(request.headers),
   });
 
   if (!session) {
-    return reply.status(401).send({
-      error: "Unauthorized",
-      code: "UNAUTHORIZED",
-    });
+    return;
   }
 
   const user = await prisma.user.findUnique({
@@ -29,10 +43,7 @@ export const requireActivePlan = async (
   });
 
   if (!user) {
-    return reply.status(401).send({
-      error: "Unauthorized",
-      code: "UNAUTHORIZED",
-    });
+    return;
   }
 
   const hasActiveSubscription =
@@ -43,13 +54,14 @@ export const requireActivePlan = async (
   }
 
   const trialEndsAt = dayjs(user.createdAt).add(TRIAL_DAYS, "day");
-  const isTrialActive = user.plan === Plan.FREE && dayjs().isBefore(trialEndsAt);
+  const isTrialActive =
+    user.plan === Plan.FREE && dayjs().isBefore(trialEndsAt);
 
   if (isTrialActive) {
     return;
   }
 
-  return reply.status(403).send({
+  reply.status(403).send({
     error: "Seu período de teste expirou. Assine um plano para continuar.",
     code: "SUBSCRIPTION_REQUIRED",
   });

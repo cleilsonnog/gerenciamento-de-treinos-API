@@ -17,6 +17,7 @@ import {
 import { auth } from "./lib/auth.js";
 import { checkBan } from "./lib/check-ban.js";
 import { env } from "./lib/env.js";
+import { requireActivePlan } from "./lib/require-active-plan.js";
 import { adminRoutes } from "./routes/admin.js";
 import { aiRoutes } from "./routes/ai.js";
 import { homeRoutes } from "./routes/home.js";
@@ -105,6 +106,7 @@ app.addHook("onRequest", async (request, reply) => {
 });
 
 app.addHook("onRequest", checkBan);
+app.addHook("onRequest", requireActivePlan);
 
 await app.register(adminRoutes, { prefix: "/admin" });
 await app.register(workoutPlanRoutes);
