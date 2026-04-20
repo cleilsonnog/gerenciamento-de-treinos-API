@@ -78,9 +78,6 @@ importers:
       globals:
         specifier: ^17.3.0
         version: 17.3.0
-      node@24:
-        specifier: link:types/node@24
-        version: link:types/node@24
       prettier:
         specifier: 3.8.1
         version: 3.8.1

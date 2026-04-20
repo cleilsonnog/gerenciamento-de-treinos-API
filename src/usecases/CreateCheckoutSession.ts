@@ -17,8 +17,6 @@ const PRICE_IDS: Record<string, string> = {
   YEARLY: env.STRIPE_PRICE_YEARLY_ID,
 };
 
-const MONTHLY_COUPON_ID = "TREINOIA5";
-
 export class CreateCheckoutSession {
   execute = async (dto: InputDto): Promise<OutputDto> => {
     const user = await prisma.user.findUnique({
@@ -47,7 +45,7 @@ export class CreateCheckoutSession {
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
       ...(dto.plan === "MONTHLY" && {
-        discounts: [{ coupon: MONTHLY_COUPON_ID }],
+        discounts: [{ coupon: env.MONTHLY_COUPON_ID }],
       }),
       subscription_data: {
         trial_period_days: 14,

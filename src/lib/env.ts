@@ -21,6 +21,7 @@ const envSchema = z.object({
   STRIPE_PRICE_MONTHLY_ID: z.string().startsWith("price_"),
   STRIPE_PRICE_QUARTERLY_ID: z.string().startsWith("price_").optional(),
   STRIPE_PRICE_YEARLY_ID: z.string().startsWith("price_"),
+  MONTHLY_COUPON_ID: z.string(),
   WEB_APP_BASE_URL: z.string().transform((val) => val.split(",").map((u) => u.trim())),
   ADMIN_USER_IDS: z
     .string()
