@@ -84,6 +84,7 @@ export const meRoutes = async (app: FastifyInstance) => {
           heightInCentimeters: request.body.heightInCentimeters,
           age: request.body.age,
           bodyFatPercentage: request.body.bodyFatPercentage,
+          gender: request.body.gender,
         });
         return reply.status(200).send(result);
       } catch (error) {

@@ -1,3 +1,4 @@
+import { Gender } from "../generated/prisma/enums.js";
 import { prisma } from "../lib/db.js";
 
 interface InputDto {
@@ -11,6 +12,7 @@ interface OutputDto {
   heightInCentimeters: number;
   age: number;
   bodyFatPercentage: number | null;
+  gender: Gender | null;
 }
 
 export class GetUserTrainData {
@@ -35,6 +37,7 @@ export class GetUserTrainData {
       heightInCentimeters: user.heightInCentimeters,
       age: user.age,
       bodyFatPercentage: user.bodyFatPercentage,
+      gender: user.gender,
     };
   }
 }

@@ -1,6 +1,6 @@
 import z from "zod";
 
-import { Plan, SubscriptionStatus, WeekDay } from "../generated/prisma/enums.js";
+import { Gender, Plan, SubscriptionStatus, WeekDay } from "../generated/prisma/enums.js";
 
 const weekDayValues = Object.values(WeekDay) as [WeekDay, ...WeekDay[]];
 
@@ -226,6 +226,7 @@ export const UpsertUserTrainDataBodySchema = z.object({
   heightInCentimeters: z.number().int().positive(),
   age: z.number().int().positive(),
   bodyFatPercentage: z.number().int().min(0).max(100).nullable().optional(),
+  gender: z.enum(Gender).nullable().optional(),
 });
 
 export const UpsertUserTrainDataResponseSchema = z.object({
@@ -234,6 +235,7 @@ export const UpsertUserTrainDataResponseSchema = z.object({
   heightInCentimeters: z.number(),
   age: z.number(),
   bodyFatPercentage: z.number().nullable(),
+  gender: z.enum(Gender).nullable(),
 });
 
 export const GetUserTrainDataResponseSchema = z
@@ -244,6 +246,7 @@ export const GetUserTrainDataResponseSchema = z
     heightInCentimeters: z.number(),
     age: z.number(),
     bodyFatPercentage: z.number().nullable(),
+    gender: z.enum(Gender).nullable(),
   })
   .nullable();
 

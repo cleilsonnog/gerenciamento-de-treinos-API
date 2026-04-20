@@ -1,3 +1,4 @@
+import { Gender } from "../generated/prisma/enums.js";
 import { prisma } from "../lib/db.js";
 
 interface InputDto {
@@ -6,6 +7,7 @@ interface InputDto {
   heightInCentimeters: number;
   age: number;
   bodyFatPercentage?: number | null;
+  gender?: Gender | null;
 }
 
 interface OutputDto {
@@ -14,6 +16,7 @@ interface OutputDto {
   heightInCentimeters: number;
   age: number;
   bodyFatPercentage: number | null;
+  gender: Gender | null;
 }
 
 export class UpsertUserTrainData {
@@ -25,6 +28,7 @@ export class UpsertUserTrainData {
         heightInCentimeters: dto.heightInCentimeters,
         age: dto.age,
         bodyFatPercentage: dto.bodyFatPercentage ?? null,
+        ...(dto.gender !== undefined && { gender: dto.gender }),
       },
     });
 
@@ -34,6 +38,7 @@ export class UpsertUserTrainData {
       heightInCentimeters: user.heightInCentimeters!,
       age: user.age!,
       bodyFatPercentage: user.bodyFatPercentage,
+      gender: user.gender,
     };
   }
 }

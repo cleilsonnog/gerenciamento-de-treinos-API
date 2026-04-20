@@ -28,6 +28,7 @@ model User {
   heightInCentimeters Int?
   age                 Int?
   bodyFatPercentage   Int? // 100 representa 100%
+  gender              Gender?
   role                String             @default("user")
   banned              Boolean            @default(false)
   banReason           String?
@@ -68,6 +69,12 @@ enum SubscriptionStatus {
   CANCELED
   INCOMPLETE
   PAST_DUE
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  PREFER_NOT_TO_SAY
 }
 
 enum WeekDay {

@@ -12,7 +12,7 @@ import { FastifyInstance } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import z from "zod";
 
-import { WeekDay } from "../generated/prisma/enums.js";
+import { Gender, WeekDay } from "../generated/prisma/enums.js";
 import { auth } from "../lib/auth.js";
 import { AddExerciseToWorkoutDay } from "../usecases/AddExerciseToWorkoutDay.js";
 import { CreateWorkoutPlan } from "../usecases/CreatWorkoutPlan.js";
@@ -40,8 +40,9 @@ const SYSTEM_PROMPT = `Você é um personal trainer virtual completo. Você ajud
      - **Etapa 1**: Pergunte o nome dele.
      - **Etapa 2**: Pergunte peso (em kg) e altura (em cm).
      - **Etapa 3**: Pergunte a idade.
-     - **Etapa 4**: Pergunte se ele sabe o percentual de gordura corporal (opcional, pode pular).
-   - Após coletar todos os dados, salve com a tool \`updateUserTrainData\`. **IMPORTANTE**: converta o peso de kg para gramas (multiplique por 1000) antes de salvar.
+     - **Etapa 4**: Pergunte o sexo (masculino, feminino, ou prefere não dizer). Isso é usado para personalizar as imagens do plano de treino.
+     - **Etapa 5**: Pergunte se ele sabe o percentual de gordura corporal (opcional, pode pular).
+   - Após coletar todos os dados, salve com a tool \`updateUserTrainData\`. **IMPORTANTE**: converta o peso de kg para gramas (multiplique por 1000) antes de salvar. Para gender use: MALE, FEMALE ou PREFER_NOT_TO_SAY.
    - Seja paciente. Se o usuário responder vários dados de uma vez, aceite e avance as etapas automaticamente.
 4. Se o usuário **já tem dados cadastrados**: cumprimente-o pelo nome de forma amigável.
 
@@ -129,15 +130,27 @@ Escolha a divisão adequada com base nos dias disponíveis:
 
 ### Imagens de Capa (coverImageUrl)
 
-SEMPRE forneça um \`coverImageUrl\` para cada dia de treino. Escolha com base no foco muscular:
+SEMPRE forneça um \`coverImageUrl\` para cada dia de treino. Escolha com base no foco muscular **e no gênero do usuário** (obtido via \`getUserTrainData\`). Se o gênero for PREFER_NOT_TO_SAY ou null, use as imagens masculinas como padrão.
 
-**Dias majoritariamente superiores** (peito, costas, ombros, bíceps, tríceps, push, pull, upper, full body):
+**MASCULINO (MALE / PREFER_NOT_TO_SAY / null)**:
+
+Dias majoritariamente superiores (peito, costas, ombros, bíceps, tríceps, push, pull, upper, full body):
 - https://gw8hy3fdcv.ufs.sh/f/ccoBDpLoAPCO3y8pQ6GBg8iqe9pP2JrHjwd1nfKtVSQskI0v
 - https://gw8hy3fdcv.ufs.sh/f/ccoBDpLoAPCOW3fJmqZe4yoUcwvRPQa8kmFprzNiC30hqftL
 
-**Dias majoritariamente inferiores** (pernas, glúteos, quadríceps, posterior, panturrilha, legs, lower):
+Dias majoritariamente inferiores (pernas, glúteos, quadríceps, posterior, panturrilha, legs, lower):
 - https://gw8hy3fdcv.ufs.sh/f/ccoBDpLoAPCOgCHaUgNGronCvXmSzAMs1N3KgLdE5yHT6Ykj
 - https://gw8hy3fdcv.ufs.sh/f/ccoBDpLoAPCO85RVu3morROwZk5NPhs1jzH7X8TyEvLUCGxY
+
+**FEMININO (FEMALE)**:
+
+Dias majoritariamente superiores (peito, costas, ombros, bíceps, tríceps, push, pull, upper, full body):
+- https://sx3a8i7dya.ufs.sh/f/qrr8dywtGnlurrDjbIRAP5vYhGLqDQzt61CadUsIKeNWRyHg
+- https://sx3a8i7dya.ufs.sh/f/qrr8dywtGnluoa4AV82J4m3hwKEsxXfV0PpdbSYyZL5IBktM
+
+Dias majoritariamente inferiores (pernas, glúteos, quadríceps, posterior, panturrilha, legs, lower):
+- https://sx3a8i7dya.ufs.sh/f/qrr8dywtGnlublYJyg6c0Ure6q3JBtoFThPnLIldyfZE7xW4
+- https://sx3a8i7dya.ufs.sh/f/qrr8dywtGnluPj9fEoQsXMWE8jUwLbHnPp3z56OJFARGvB47
 
 Alterne entre as duas opções de cada categoria para variar. Dias de descanso usam imagem de superior.`;
 
@@ -196,6 +209,13 @@ export const aiRoutes = async (app: FastifyInstance) => {
                 .optional()
                 .describe(
                   "Percentual de gordura corporal (0 a 100). Opcional, pois o usuário pode não saber.",
+                ),
+              gender: z
+                .enum(Gender)
+                .nullable()
+                .optional()
+                .describe(
+                  "Sexo do usuário: MALE, FEMALE ou PREFER_NOT_TO_SAY.",
                 ),
             }),
             execute: async (params) => {
