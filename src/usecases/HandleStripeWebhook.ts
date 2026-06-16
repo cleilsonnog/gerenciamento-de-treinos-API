@@ -76,15 +76,29 @@ export class HandleStripeWebhook {
       return;
     }
 
-    const subscriptionId =
-      typeof session.subscription === "string"
-        ? session.subscription
-        : session.subscription?.id;
-
     const customerId =
       typeof session.customer === "string"
         ? session.customer
         : session.customer?.id;
+
+    const isLifetime = plan === "LIFETIME";
+
+    if (isLifetime) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          plan: Plan.LIFETIME,
+          stripeCustomerId: customerId ?? undefined,
+          subscriptionStatus: SubscriptionStatus.ACTIVE,
+        },
+      });
+      return;
+    }
+
+    const subscriptionId =
+      typeof session.subscription === "string"
+        ? session.subscription
+        : session.subscription?.id;
 
     const subscription = subscriptionId
       ? await stripe.subscriptions.retrieve(subscriptionId)
@@ -93,7 +107,7 @@ export class HandleStripeWebhook {
     await prisma.user.update({
       where: { id: userId },
       data: {
-        plan: plan === "MONTHLY" ? Plan.MONTHLY : plan === "YEARLY" ? Plan.YEARLY : Plan.QUARTERLY,
+        plan: Plan.YEARLY,
         stripeCustomerId: customerId ?? undefined,
         subscriptionId: subscriptionId ?? undefined,
         subscriptionStatus: subscription

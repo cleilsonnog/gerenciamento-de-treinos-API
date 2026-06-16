@@ -5,7 +5,7 @@ import { stripe } from "../lib/stripe.js";
 interface InputDto {
   userId: string;
   userEmail: string;
-  plan: "MONTHLY" | "YEARLY";
+  plan: "YEARLY" | "LIFETIME";
 }
 
 interface OutputDto {
@@ -13,8 +13,8 @@ interface OutputDto {
 }
 
 const PRICE_IDS: Record<string, string> = {
-  MONTHLY: env.STRIPE_PRICE_MONTHLY_ID,
   YEARLY: env.STRIPE_PRICE_YEARLY_ID,
+  LIFETIME: env.STRIPE_PRICE_LIFETIME_ID,
 };
 
 export class CreateCheckoutSession {
@@ -39,17 +39,17 @@ export class CreateCheckoutSession {
     }
 
     const priceId = PRICE_IDS[dto.plan];
+    const isLifetime = dto.plan === "LIFETIME";
 
     const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
+      mode: isLifetime ? "payment" : "subscription",
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
-      ...(dto.plan === "MONTHLY" && {
-        discounts: [{ coupon: env.MONTHLY_COUPON_ID }],
+      ...(!isLifetime && {
+        subscription_data: {
+          trial_period_days: 14,
+        },
       }),
-      subscription_data: {
-        trial_period_days: 14,
-      },
       success_url: `${env.WEB_APP_BASE_URL[0]}/profile`,
       cancel_url: `${env.WEB_APP_BASE_URL[0]}/landing#planos`,
       metadata: { userId: dto.userId, plan: dto.plan },

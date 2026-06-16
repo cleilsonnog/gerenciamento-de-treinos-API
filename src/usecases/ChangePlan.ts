@@ -6,7 +6,7 @@ import { stripe } from "../lib/stripe.js";
 
 interface InputDto {
   userId: string;
-  newPlan: "MONTHLY" | "YEARLY";
+  newPlan: "YEARLY" | "LIFETIME";
 }
 
 interface OutputDto {
@@ -15,13 +15,13 @@ interface OutputDto {
 }
 
 const PRICE_IDS: Record<string, string> = {
-  MONTHLY: env.STRIPE_PRICE_MONTHLY_ID,
   YEARLY: env.STRIPE_PRICE_YEARLY_ID,
+  LIFETIME: env.STRIPE_PRICE_LIFETIME_ID,
 };
 
 const PLAN_MAP: Record<string, Plan> = {
-  MONTHLY: Plan.MONTHLY,
   YEARLY: Plan.YEARLY,
+  LIFETIME: Plan.LIFETIME,
 };
 
 export class ChangePlan {
@@ -41,7 +41,7 @@ export class ChangePlan {
       );
     }
 
-    const currentPlanKey = user.plan === Plan.MONTHLY ? "MONTHLY" : "YEARLY";
+    const currentPlanKey = user.plan === Plan.YEARLY ? "YEARLY" : "LIFETIME";
     if (currentPlanKey === dto.newPlan) {
       return { message: "Already on this plan", plan: user.plan };
     }

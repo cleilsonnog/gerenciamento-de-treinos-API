@@ -18,10 +18,8 @@ const envSchema = z.object({
   OPENAI_API_KEY: z.string().optional(),
   STRIPE_SECRET_KEY: z.string().startsWith("sk_"),
   STRIPE_WEBHOOK_SECRET: z.string().startsWith("whsec_"),
-  STRIPE_PRICE_MONTHLY_ID: z.string().startsWith("price_"),
-  STRIPE_PRICE_QUARTERLY_ID: z.string().startsWith("price_").optional(),
   STRIPE_PRICE_YEARLY_ID: z.string().startsWith("price_"),
-  MONTHLY_COUPON_ID: z.string(),
+  STRIPE_PRICE_LIFETIME_ID: z.string().startsWith("price_"),
   WEB_APP_BASE_URL: z.string().transform((val) => val.split(",").map((u) => u.trim())),
   ADMIN_USER_IDS: z
     .string()

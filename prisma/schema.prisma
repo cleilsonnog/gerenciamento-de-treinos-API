@@ -59,9 +59,8 @@ model WorkoutPlan {
 
 enum Plan {
   FREE
-  MONTHLY
-  QUARTERLY
   YEARLY
+  LIFETIME
 }
 
 enum SubscriptionStatus {

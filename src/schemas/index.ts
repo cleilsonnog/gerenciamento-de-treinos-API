@@ -279,7 +279,7 @@ const subscriptionStatusValues = Object.values(SubscriptionStatus) as [
 ];
 
 export const CreateCheckoutSessionBodySchema = z.object({
-  plan: z.enum(["MONTHLY", "YEARLY"]),
+  plan: z.enum(["YEARLY", "LIFETIME"]),
 });
 
 export const CreateCheckoutSessionResponseSchema = z.object({
@@ -302,7 +302,7 @@ export const CancelSubscriptionResponseSchema = z.object({
 });
 
 export const ChangePlanBodySchema = z.object({
-  plan: z.enum(["MONTHLY", "YEARLY"]),
+  plan: z.enum(["YEARLY", "LIFETIME"]),
 });
 
 export const ChangePlanResponseSchema = z.object({
