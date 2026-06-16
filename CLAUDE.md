@@ -55,7 +55,12 @@ Swagger JSON em `/swagger.json`, Scalar UI em `/docs`. Endpoints de auth sao mes
 - **ESLint** com typescript-eslint, integracao com prettier e `simple-import-sort` (imports devem ser ordenados)
 - **Zod 4** para validacao (usa padrao `z.interface()`, nao `z.object()`)
 - **CORS** permite `http://localhost:3000` com credentials
-- Variaveis de ambiente: `PORT`, `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`
+- Variaveis de ambiente: `PORT`, `DATABASE_URL`, `BETTER_AUTH_SECRET`, `API_BASE_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_GENERATIVE_AI_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_YEARLY_ID`, `STRIPE_PRICE_LIFETIME_ID`, `WEB_APP_BASE_URL`, `ADMIN_USER_IDS`
+
+### Planos de Assinatura
+
+- **YEARLY** — Assinatura recorrente anual (R$ 27/ano) via Stripe Checkout (`mode: "subscription"`)
+- **LIFETIME** — Pagamento unico vitalicio (R$ 47) via Stripe Checkout (`mode: "payment"`)
 
 ## Rules
 
