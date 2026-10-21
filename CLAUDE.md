@@ -69,3 +69,5 @@ Detailed coding rules are in `.claude/rules/`:
 - `architecture.md` — route and use case patterns with examples
 - `typescript.md` — TypeScript conventions, naming, Zod usage
 - `general.md` — stack overview, commands, MCP usage
+
+So para fazer redeploy.
