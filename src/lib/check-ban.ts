@@ -8,7 +8,7 @@ export const checkBan = async (
   request: FastifyRequest,
   reply: FastifyReply,
 ): Promise<void> => {
-  const publicPaths = ["/api/auth", "/swagger.json", "/docs", "/webhook"];
+  const publicPaths = ["/api/auth", "/swagger.json", "/docs", "/webhook", "/integrations"];
   const isPublic = publicPaths.some((path) => request.url.startsWith(path));
 
   if (isPublic) {

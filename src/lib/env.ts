@@ -25,6 +25,13 @@ const envSchema = z.object({
     .string()
     .default("")
     .transform((val) => val.split(",").map((id) => id.trim()).filter(Boolean)),
+  // Read-only integration (JARVIS): both unset = route disabled (404)
+  INTEGRATION_TOKEN: z
+    .union([z.literal("").transform(() => undefined), z.string().min(32)])
+    .optional(),
+  INTEGRATION_USER_EMAIL: z
+    .union([z.literal("").transform(() => undefined), z.email()])
+    .optional(),
   NODE_ENV: z
     .enum(["development", "production", "test"])
     .default("development"),

@@ -496,3 +496,61 @@ export const DeleteAdminExerciseParamsSchema = z.object({
 export const DeleteAdminExerciseResponseSchema = z.object({
   message: z.string(),
 });
+
+export const GetIntegrationSummaryQuerySchema = z.object({
+  timezone: z.string().default("America/Sao_Paulo"),
+});
+
+export const GetIntegrationSummaryResponseSchema = z.object({
+  date: z.iso.date(),
+  workoutPlan: z.object({ name: z.string() }).nullable(),
+  today: z
+    .object({
+      name: z.string(),
+      isRest: z.boolean(),
+      weekDay: z.enum(WeekDay),
+      estimatedDurationInMinutes: z.number(),
+      completed: z.boolean(),
+      exercises: z.array(
+        z.object({
+          name: z.string(),
+          sets: z.number(),
+          reps: z.number(),
+          weightInKg: z.number().nullable(),
+          restTimeInSeconds: z.number(),
+        }),
+      ),
+    })
+    .nullable(),
+  weekSchedule: z.array(
+    z.object({
+      weekDay: z.enum(WeekDay),
+      name: z.string(),
+      isRest: z.boolean(),
+    }),
+  ),
+  workoutStreak: z.number(),
+  week: z.object({
+    completedWorkouts: z.number(),
+    plannedWorkouts: z.number(),
+    consistencyByDay: z.record(
+      z.iso.date(),
+      z.object({
+        workoutDayCompleted: z.boolean(),
+        workoutDayStarted: z.boolean(),
+      }),
+    ),
+  }),
+  month: z.object({
+    completedWorkoutsCount: z.number(),
+    conclusionRate: z.number(),
+    totalTimeInMinutes: z.number(),
+  }),
+  lastWorkout: z
+    .object({
+      date: z.iso.date(),
+      name: z.string(),
+      durationInMinutes: z.number().nullable(),
+    })
+    .nullable(),
+});

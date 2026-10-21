@@ -21,6 +21,7 @@ import { requireActivePlan } from "./lib/require-active-plan.js";
 import { adminRoutes } from "./routes/admin.js";
 import { aiRoutes } from "./routes/ai.js";
 import { homeRoutes } from "./routes/home.js";
+import { integrationRoutes } from "./routes/integrations.js";
 import { meRoutes } from "./routes/me.js";
 import { statsRoutes } from "./routes/stats.js";
 import { stripeRoutes } from "./routes/stripe.js";
@@ -115,6 +116,7 @@ await app.register(statsRoutes, { prefix: "/stats" });
 await app.register(meRoutes, { prefix: "/me" });
 await app.register(aiRoutes, { prefix: "/ai" });
 await app.register(stripeRoutes);
+await app.register(integrationRoutes, { prefix: "/integrations" });
 
 app.withTypeProvider<ZodTypeProvider>().route({
   method: "GET",
